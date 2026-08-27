@@ -16,7 +16,13 @@ const Settings = () => {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
 
-  // Mock data for UI if none exists
+  const [newDiscipline, setNewDiscipline] = useState({ id: '', name: '' });
+  const [newPackage, setNewPackage] = useState({ id: '', name: '' });
+  const [newSystemMap, setNewSystemMap] = useState<{[key:string]: string}>({});
+  const [showAddPackage, setShowAddPackage] = useState(false);
+  const [showAddDiscipline, setShowAddDiscipline] = useState(false);
+
+  // Default fallback data if empty
   const defaultPackages = [
     { id: 'A01', name: 'Package A', systems: ['A01-1', 'A01-2', 'A01-3'] },
     { id: 'B01', name: 'Package B', systems: ['B01-1', 'B01-2'] }
@@ -29,7 +35,7 @@ const Settings = () => {
     { id: 'CSI', name: 'Control System' },
     { id: 'COM', name: 'Commissioning' }
   ];
-  
+
   const defaultRoles = [
     { id: 'CONTRACTOR', name: 'Contractor', description: 'Can create punch items, upload evidence, and submit to OE.' },
     { id: 'OE', name: 'Owner Engineer (OE)', description: 'Can review, reject, and approve items to Owner.' },
@@ -52,6 +58,10 @@ const Settings = () => {
     { event: 'Item Closed', email: false, app: true }
   ];
 
+  // Parse state
+  const packages = settings.PACKAGES && settings.PACKAGES !== '[]' ? JSON.parse(settings.PACKAGES) : defaultPackages;
+  const disciplines = settings.DISCIPLINES && settings.DISCIPLINES !== '[]' ? JSON.parse(settings.DISCIPLINES) : defaultDisciplines;
+
   useEffect(() => {
     const loadSettings = async () => {
       try {
@@ -68,6 +78,58 @@ const Settings = () => {
 
   const handleChange = (key: string, value: string) => {
     setSettings(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleAddDiscipline = () => {
+    if (!newDiscipline.id || !newDiscipline.name) return;
+    const updated = [...disciplines, newDiscipline];
+    handleChange('DISCIPLINES', JSON.stringify(updated));
+    setNewDiscipline({ id: '', name: '' });
+    setShowAddDiscipline(false);
+  };
+
+  const handleRemoveDiscipline = (id: string) => {
+    if(!window.confirm('Remove this discipline?')) return;
+    const updated = disciplines.filter((d: any) => d.id !== id);
+    handleChange('DISCIPLINES', JSON.stringify(updated));
+  };
+
+  const handleAddPackage = () => {
+    if (!newPackage.id || !newPackage.name) return;
+    const updated = [...packages, { ...newPackage, systems: [] }];
+    handleChange('PACKAGES', JSON.stringify(updated));
+    setNewPackage({ id: '', name: '' });
+    setShowAddPackage(false);
+  };
+
+  const handleRemovePackage = (id: string) => {
+    if(!window.confirm('Remove this package?')) return;
+    const updated = packages.filter((p: any) => p.id !== id);
+    handleChange('PACKAGES', JSON.stringify(updated));
+  };
+
+  const handleAddSystem = (pkgId: string) => {
+    const system = newSystemMap[pkgId];
+    if (!system) return;
+    const updated = packages.map((p: any) => {
+        if (p.id === pkgId && !p.systems.includes(system)) {
+            return { ...p, systems: [...p.systems, system] };
+        }
+        return p;
+    });
+    handleChange('PACKAGES', JSON.stringify(updated));
+    setNewSystemMap(prev => ({...prev, [pkgId]: ''}));
+  };
+
+  const handleRemoveSystem = (pkgId: string, system: string) => {
+    if(!window.confirm('Remove this system?')) return;
+    const updated = packages.map((p: any) => {
+        if (p.id === pkgId) {
+            return { ...p, systems: p.systems.filter((s: string) => s !== system) };
+        }
+        return p;
+    });
+    handleChange('PACKAGES', JSON.stringify(updated));
   };
 
   const handleSave = async () => {
@@ -168,9 +230,6 @@ const Settings = () => {
               <h2 className="text-lg font-semibold text-primary-dark">Role / Group</h2>
               <p className="text-sm text-surface-textMuted mt-1">Manage user roles and their descriptions.</p>
             </div>
-            <button className="flex items-center space-x-1 bg-green-50 text-green-700 border border-green-200 px-3 py-1.5 rounded text-sm font-medium hover:bg-green-100">
-              <Plus size={16} /><span>Add Role</span>
-            </button>
           </div>
           <div className="p-0">
             <table className="w-full text-left text-sm">
@@ -178,7 +237,6 @@ const Settings = () => {
                 <tr>
                   <th className="px-6 py-3 font-semibold text-primary-dark">Role</th>
                   <th className="px-6 py-3 font-semibold text-primary-dark">Description</th>
-                  <th className="px-6 py-3 font-semibold text-primary-dark text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-surface-border">
@@ -186,10 +244,6 @@ const Settings = () => {
                   <tr key={role.id} className="hover:bg-gray-50">
                     <td className="px-6 py-3 font-bold text-gray-700">{role.name}</td>
                     <td className="px-6 py-3 text-gray-600">{role.description}</td>
-                    <td className="px-6 py-3 text-right">
-                      <button className="text-blue-600 hover:underline mr-3">Edit</button>
-                      <button className="text-red-600 hover:underline">Remove</button>
-                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -206,12 +260,26 @@ const Settings = () => {
               <h2 className="text-lg font-semibold text-primary-dark">Packages & Systems</h2>
               <p className="text-sm text-surface-textMuted mt-1">Manage project structural breakdown.</p>
             </div>
-            <button className="flex items-center space-x-1 bg-green-50 text-green-700 border border-green-200 px-3 py-1.5 rounded text-sm font-medium hover:bg-green-100">
+            <button onClick={() => setShowAddPackage(!showAddPackage)} className="flex items-center space-x-1 bg-green-50 text-green-700 border border-green-200 px-3 py-1.5 rounded text-sm font-medium hover:bg-green-100">
               <Plus size={16} /><span>Add Package</span>
             </button>
           </div>
           <div className="p-6 space-y-6">
-            {defaultPackages.map(pkg => (
+            {showAddPackage && (
+              <div className="border border-green-200 rounded-lg p-4 bg-green-50/30 flex items-end space-x-3 mb-6">
+                <div className="flex-1">
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Package ID</label>
+                  <input type="text" value={newPackage.id} onChange={e => setNewPackage({...newPackage, id: e.target.value})} placeholder="e.g. C01" className="w-full px-3 py-1.5 border border-gray-300 rounded text-sm"/>
+                </div>
+                <div className="flex-[2]">
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Package Name</label>
+                  <input type="text" value={newPackage.name} onChange={e => setNewPackage({...newPackage, name: e.target.value})} placeholder="e.g. Civil Works Phase 1" className="w-full px-3 py-1.5 border border-gray-300 rounded text-sm"/>
+                </div>
+                <button onClick={handleAddPackage} className="bg-green-600 text-white px-4 py-1.5 rounded text-sm font-medium hover:bg-green-700">Save</button>
+              </div>
+            )}
+            
+            {packages.map((pkg: any) => (
               <div key={pkg.id} className="border border-surface-border rounded-lg p-4 bg-gray-50">
                 <div className="flex justify-between items-center mb-3 pb-2 border-b">
                   <div className="font-bold text-primary-dark flex items-center space-x-2">
@@ -219,22 +287,31 @@ const Settings = () => {
                     <span>{pkg.name}</span>
                   </div>
                   <div className="flex space-x-2">
-                    <button className="text-xs text-blue-600 hover:underline">Edit</button>
-                    <button className="text-xs text-red-600 hover:underline">Remove</button>
+                    <button onClick={() => handleRemovePackage(pkg.id)} className="text-xs text-red-600 hover:underline">Remove</button>
                   </div>
                 </div>
                 <div>
                   <div className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wider">Sub-Systems</div>
-                  <div className="flex flex-wrap gap-2">
-                    {pkg.systems.map(sys => (
+                  <div className="flex flex-wrap items-center gap-2">
+                    {pkg.systems.map((sys: string) => (
                       <span key={sys} className="bg-white border border-gray-300 px-2 py-1 rounded text-sm text-gray-700 flex items-center space-x-1">
                         <span>{sys}</span>
-                        <button className="text-gray-400 hover:text-red-500 ml-1"><Trash2 size={12}/></button>
+                        <button onClick={() => handleRemoveSystem(pkg.id, sys)} className="text-gray-400 hover:text-red-500 ml-1"><Trash2 size={12}/></button>
                       </span>
                     ))}
-                    <button className="bg-white border border-dashed border-gray-400 text-gray-500 px-2 py-1 rounded text-sm hover:bg-gray-100 flex items-center">
-                      <Plus size={14} className="mr-1"/> Add System
-                    </button>
+                    <div className="flex items-center space-x-1">
+                      <input 
+                        type="text" 
+                        placeholder="New System" 
+                        value={newSystemMap[pkg.id] || ''}
+                        onChange={e => setNewSystemMap(prev => ({...prev, [pkg.id]: e.target.value}))}
+                        onKeyDown={e => e.key === 'Enter' && handleAddSystem(pkg.id)}
+                        className="border border-gray-300 px-2 py-1 rounded text-sm w-32 focus:outline-none focus:border-primary-blue"
+                      />
+                      <button onClick={() => handleAddSystem(pkg.id)} className="bg-white border border-dashed border-gray-400 text-gray-500 px-2 py-1 rounded text-sm hover:bg-gray-100 flex items-center">
+                        <Plus size={14} className="mr-1"/> Add
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -251,11 +328,24 @@ const Settings = () => {
               <h2 className="text-lg font-semibold text-primary-dark">Disciplines</h2>
               <p className="text-sm text-surface-textMuted mt-1">Configure available engineering disciplines.</p>
             </div>
-            <button className="flex items-center space-x-1 bg-green-50 text-green-700 border border-green-200 px-3 py-1.5 rounded text-sm font-medium hover:bg-green-100">
+            <button onClick={() => setShowAddDiscipline(!showAddDiscipline)} className="flex items-center space-x-1 bg-green-50 text-green-700 border border-green-200 px-3 py-1.5 rounded text-sm font-medium hover:bg-green-100">
               <Plus size={16} /><span>Add Discipline</span>
             </button>
           </div>
           <div className="p-0">
+            {showAddDiscipline && (
+              <div className="p-4 border-b border-surface-border bg-green-50/30 flex items-end space-x-3">
+                <div className="flex-1">
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Code</label>
+                  <input type="text" value={newDiscipline.id} onChange={e => setNewDiscipline({...newDiscipline, id: e.target.value})} placeholder="e.g. STR" className="w-full px-3 py-1.5 border border-gray-300 rounded text-sm"/>
+                </div>
+                <div className="flex-[2]">
+                  <label className="block text-xs font-medium text-gray-600 mb-1">Name</label>
+                  <input type="text" value={newDiscipline.name} onChange={e => setNewDiscipline({...newDiscipline, name: e.target.value})} placeholder="e.g. Structural" className="w-full px-3 py-1.5 border border-gray-300 rounded text-sm"/>
+                </div>
+                <button onClick={handleAddDiscipline} className="bg-green-600 text-white px-4 py-1.5 rounded text-sm font-medium hover:bg-green-700">Save</button>
+              </div>
+            )}
             <table className="w-full text-left text-sm">
               <thead className="bg-surface-app border-b border-surface-border">
                 <tr>
@@ -265,13 +355,12 @@ const Settings = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-surface-border">
-                {defaultDisciplines.map(d => (
+                {disciplines.map((d: any) => (
                   <tr key={d.id} className="hover:bg-gray-50">
                     <td className="px-6 py-3 font-bold text-gray-700">{d.id}</td>
                     <td className="px-6 py-3 text-gray-600">{d.name}</td>
                     <td className="px-6 py-3 text-right">
-                      <button className="text-blue-600 hover:underline mr-3">Edit</button>
-                      <button className="text-red-600 hover:underline">Disable</button>
+                      <button onClick={() => handleRemoveDiscipline(d.id)} className="text-red-600 hover:underline">Remove</button>
                     </td>
                   </tr>
                 ))}
@@ -363,31 +452,6 @@ const Settings = () => {
                 ))}
               </tbody>
             </table>
-          </div>
-          
-          <div className="p-6 border-t border-surface-border">
-            <h3 className="font-semibold text-primary-dark mb-4">SMTP Email Configuration</h3>
-            <div className="grid grid-cols-2 gap-4 max-w-2xl">
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">SMTP Server</label>
-                <input type="text" className="w-full p-2 text-sm border rounded bg-white" placeholder="smtp.example.com" defaultValue="smtp.office365.com" />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">SMTP Port</label>
-                <input type="text" className="w-full p-2 text-sm border rounded bg-white" placeholder="587" defaultValue="587" />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">Username / Sender Email</label>
-                <input type="text" className="w-full p-2 text-sm border rounded bg-white" placeholder="noreply@domain.com" />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">Password / App Password</label>
-                <input type="password" className="w-full p-2 text-sm border rounded bg-white" placeholder="••••••••" />
-              </div>
-            </div>
-            <div className="mt-4">
-              <button className="text-sm bg-gray-100 text-gray-700 border border-gray-300 px-4 py-2 rounded hover:bg-gray-200">Test Connection</button>
-            </div>
           </div>
         </div>
       )}
