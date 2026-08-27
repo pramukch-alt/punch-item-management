@@ -2,11 +2,11 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://punch-backend.onrender.com/api/:path*"
+      "destination": "https://punch-item-management.onrender.com/api/:path*"
     },
     {
       "source": "/uploads/:path*",
-      "destination": "https://punch-backend.onrender.com/uploads/:path*"
+      "destination": "https://punch-item-management.onrender.com/uploads/:path*"
     },
     {
       "source": "/(.*)",
