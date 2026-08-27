@@ -453,6 +453,31 @@ const Settings = () => {
               </tbody>
             </table>
           </div>
+          
+          <div className="p-6 border-t border-surface-border">
+            <h3 className="font-semibold text-primary-dark mb-4">SMTP Email Configuration</h3>
+            <div className="grid grid-cols-2 gap-4 max-w-2xl">
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">SMTP Server</label>
+                <input type="text" className="w-full p-2 text-sm border rounded bg-white" placeholder="smtp.example.com" defaultValue="smtp.office365.com" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">SMTP Port</label>
+                <input type="text" className="w-full p-2 text-sm border rounded bg-white" placeholder="587" defaultValue="587" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">Username / Sender Email</label>
+                <input type="text" className="w-full p-2 text-sm border rounded bg-white" placeholder="noreply@domain.com" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">Password / App Password</label>
+                <input type="password" className="w-full p-2 text-sm border rounded bg-white" placeholder="••••••••" />
+              </div>
+            </div>
+            <div className="mt-4">
+              <button className="text-sm bg-gray-100 text-gray-700 border border-gray-300 px-4 py-2 rounded hover:bg-gray-200">Test Connection</button>
+            </div>
+          </div>
         </div>
       )}
 

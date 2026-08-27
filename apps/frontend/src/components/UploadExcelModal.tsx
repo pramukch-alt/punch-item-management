@@ -62,6 +62,14 @@ const UploadExcelModal: React.FC<UploadExcelModalProps> = ({ isOpen, onClose }) 
           <p className="text-surface-textMuted text-sm mt-1">
             Support for a single or bulk upload. Strictly prohibit from uploading company data or other band files.
           </p>
+          <a 
+            href="/PunchItem_Bulk_Upload_Template.xlsx" 
+            download 
+            className="mt-6 text-sm text-primary-blue hover:underline z-10 relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            Download Excel Template (.xlsx)
+          </a>
         </div>
 
         <div className="pt-4 flex justify-end space-x-3">

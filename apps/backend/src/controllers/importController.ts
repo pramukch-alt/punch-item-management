@@ -18,7 +18,7 @@ export const importExcel = async (req: AuthRequest, res: Response) => {
     let updatedCount = 0;
 
     for (const row of data as any[]) {
-      let { running_no, discipline, description, category, kks_tag } = row;
+      let { running_no, discipline, description, category, kks_tag, package: pkg, system } = row;
       
       if (!discipline || !description) continue;
       
@@ -39,6 +39,8 @@ export const importExcel = async (req: AuthRequest, res: Response) => {
               discipline: discipline as Discipline,
               category: category as any,
               kks_tag: kks_tag || null,
+              package: pkg || null,
+              system: system || null,
               updated_at: new Date() 
             }
           });
@@ -73,6 +75,8 @@ export const importExcel = async (req: AuthRequest, res: Response) => {
               discipline: discipline as Discipline,
               category: category as any,
               kks_tag: kks_tag || null,
+              package: pkg || null,
+              system: system || null,
               description,
               status: 'OPEN',
               created_by_id: userId
