@@ -501,8 +501,9 @@ const Settings = () => {
                       pass: settings.SMTP_PASS 
                     });
                     alert('Test email sent successfully! Please check your inbox.');
-                  } catch (err) {
-                    alert('Failed to send test email. Check your configuration or app password.');
+                  } catch (err: any) {
+                    const errorMsg = err.response?.data?.error || err.response?.data?.message || err.message || 'Unknown error';
+                    alert(`Failed to send test email.\nError: ${errorMsg}\nCheck your configuration or app password.`);
                   } finally {
                     setLoading(false);
                   }
