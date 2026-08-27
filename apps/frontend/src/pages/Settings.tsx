@@ -4,13 +4,17 @@ import api from '../services/api';
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState('general');
-  const [settings, setSettings] = useState({
+  const [settings, setSettings] = useState<Record<string, string>>({
     PROJECT_NAME: '',
     RUNNING_NO_FORMAT: '',
     EMAIL_NOTIFICATIONS: 'false',
     PACKAGES: '[]',
     DISCIPLINES: '[]',
-    AUTH_RULES: '{}'
+    AUTH_RULES: '{}',
+    SMTP_HOST: '',
+    SMTP_PORT: '',
+    SMTP_USER: '',
+    SMTP_PASS: ''
   });
   
   const [loading, setLoading] = useState(false);
@@ -80,35 +84,56 @@ const Settings = () => {
     setSettings(prev => ({ ...prev, [key]: value }));
   };
 
-  const handleAddDiscipline = () => {
+  const handleSave = async (settingsToSave = settings) => {
+    setLoading(true);
+    try {
+      await api.put('/settings', settingsToSave);
+      alert('Settings saved successfully!');
+    } catch (error) {
+      console.error(error);
+      alert('Failed to save settings');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddDiscipline = async () => {
     if (!newDiscipline.id || !newDiscipline.name) return;
     const updated = [...disciplines, newDiscipline];
-    handleChange('DISCIPLINES', JSON.stringify(updated));
+    const newSettings = { ...settings, DISCIPLINES: JSON.stringify(updated) };
+    setSettings(newSettings);
     setNewDiscipline({ id: '', name: '' });
     setShowAddDiscipline(false);
+    await handleSave(newSettings);
   };
 
-  const handleRemoveDiscipline = (id: string) => {
+  const handleRemoveDiscipline = async (id: string) => {
     if(!window.confirm('Remove this discipline?')) return;
     const updated = disciplines.filter((d: any) => d.id !== id);
-    handleChange('DISCIPLINES', JSON.stringify(updated));
+    const newSettings = { ...settings, DISCIPLINES: JSON.stringify(updated) };
+    setSettings(newSettings);
+    await handleSave(newSettings);
   };
 
-  const handleAddPackage = () => {
+  const handleAddPackage = async () => {
     if (!newPackage.id || !newPackage.name) return;
     const updated = [...packages, { ...newPackage, systems: [] }];
-    handleChange('PACKAGES', JSON.stringify(updated));
+    const newSettings = { ...settings, PACKAGES: JSON.stringify(updated) };
+    setSettings(newSettings);
     setNewPackage({ id: '', name: '' });
     setShowAddPackage(false);
+    await handleSave(newSettings);
   };
 
-  const handleRemovePackage = (id: string) => {
+  const handleRemovePackage = async (id: string) => {
     if(!window.confirm('Remove this package?')) return;
     const updated = packages.filter((p: any) => p.id !== id);
-    handleChange('PACKAGES', JSON.stringify(updated));
+    const newSettings = { ...settings, PACKAGES: JSON.stringify(updated) };
+    setSettings(newSettings);
+    await handleSave(newSettings);
   };
 
-  const handleAddSystem = (pkgId: string) => {
+  const handleAddSystem = async (pkgId: string) => {
     const system = newSystemMap[pkgId];
     if (!system) return;
     const updated = packages.map((p: any) => {
@@ -117,11 +142,13 @@ const Settings = () => {
         }
         return p;
     });
-    handleChange('PACKAGES', JSON.stringify(updated));
+    const newSettings = { ...settings, PACKAGES: JSON.stringify(updated) };
+    setSettings(newSettings);
     setNewSystemMap(prev => ({...prev, [pkgId]: ''}));
+    await handleSave(newSettings);
   };
 
-  const handleRemoveSystem = (pkgId: string, system: string) => {
+  const handleRemoveSystem = async (pkgId: string, system: string) => {
     if(!window.confirm('Remove this system?')) return;
     const updated = packages.map((p: any) => {
         if (p.id === pkgId) {
@@ -129,21 +156,9 @@ const Settings = () => {
         }
         return p;
     });
-    handleChange('PACKAGES', JSON.stringify(updated));
-  };
-
-  const handleSave = async () => {
-    setLoading(true);
-    try {
-      await api.put('/settings', settings);
-      alert('Settings saved successfully!');
-      if (activeTab === 'general') window.location.reload();
-    } catch (error) {
-      console.error(error);
-      alert('Failed to save settings');
-    } finally {
-      setLoading(false);
-    }
+    const newSettings = { ...settings, PACKAGES: JSON.stringify(updated) };
+    setSettings(newSettings);
+    await handleSave(newSettings);
   };
 
   if (fetching) return <div className="p-8">Loading settings...</div>;
