@@ -10,4 +10,8 @@ router.get('/', authenticateToken, getSettings);
 // Only Admin can update settings
 router.put('/', authenticateToken, requireRole(['ADMIN']), updateSettings);
 
+// Test email route
+import { testEmail } from '../controllers/settingsController';
+router.post('/test-email', authenticateToken, requireRole(['ADMIN']), testEmail);
+
 export default router;

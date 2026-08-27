@@ -459,23 +459,45 @@ const Settings = () => {
             <div className="grid grid-cols-2 gap-4 max-w-2xl">
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-1">SMTP Server</label>
-                <input type="text" className="w-full p-2 text-sm border rounded bg-white" placeholder="smtp.example.com" defaultValue="smtp.office365.com" />
+                <input type="text" value={settings.SMTP_HOST || ''} onChange={(e) => handleChange('SMTP_HOST', e.target.value)} className="w-full p-2 text-sm border rounded bg-white" placeholder="smtp.gmail.com" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-1">SMTP Port</label>
-                <input type="text" className="w-full p-2 text-sm border rounded bg-white" placeholder="587" defaultValue="587" />
+                <input type="text" value={settings.SMTP_PORT || ''} onChange={(e) => handleChange('SMTP_PORT', e.target.value)} className="w-full p-2 text-sm border rounded bg-white" placeholder="587" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-1">Username / Sender Email</label>
-                <input type="text" className="w-full p-2 text-sm border rounded bg-white" placeholder="noreply@domain.com" />
+                <input type="text" value={settings.SMTP_USER || ''} onChange={(e) => handleChange('SMTP_USER', e.target.value)} className="w-full p-2 text-sm border rounded bg-white" placeholder="your_email@gmail.com" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-1">Password / App Password</label>
-                <input type="password" className="w-full p-2 text-sm border rounded bg-white" placeholder="••••••••" />
+                <input type="password" value={settings.SMTP_PASS || ''} onChange={(e) => handleChange('SMTP_PASS', e.target.value)} className="w-full p-2 text-sm border rounded bg-white" placeholder="••••••••" />
               </div>
             </div>
-            <div className="mt-4">
-              <button className="text-sm bg-gray-100 text-gray-700 border border-gray-300 px-4 py-2 rounded hover:bg-gray-200">Test Connection</button>
+            <div className="mt-4 flex items-center space-x-3">
+              <button 
+                onClick={async () => {
+                  try {
+                    setLoading(true);
+                    await api.post('/settings/test-email', { 
+                      host: settings.SMTP_HOST, 
+                      port: settings.SMTP_PORT, 
+                      user: settings.SMTP_USER, 
+                      pass: settings.SMTP_PASS 
+                    });
+                    alert('Test email sent successfully! Please check your inbox.');
+                  } catch (err) {
+                    alert('Failed to send test email. Check your configuration or app password.');
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+                disabled={loading}
+                className="text-sm bg-gray-100 text-gray-700 border border-gray-300 px-4 py-2 rounded hover:bg-gray-200"
+              >
+                Test Connection
+              </button>
+              <p className="text-xs text-gray-500">For Gmail, use App Passwords instead of your normal password.</p>
             </div>
           </div>
         </div>
