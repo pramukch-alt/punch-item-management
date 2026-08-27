@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import Modal from './Modal';
-import { UploadCloud } from 'lucide-react';
+import { UploadCloud, Download } from 'lucide-react';
 import api from '../services/api';
 
 interface UploadExcelModalProps {
@@ -62,13 +62,15 @@ const UploadExcelModal: React.FC<UploadExcelModalProps> = ({ isOpen, onClose }) 
           <p className="text-surface-textMuted text-sm mt-1">
             Support for a single or bulk upload. Strictly prohibit from uploading company data or other band files.
           </p>
+        </div>
+        
+        <div className="flex justify-between items-center pt-2">
           <a 
             href="/PunchItem_Bulk_Upload_Template.xlsx" 
             download 
-            className="mt-6 text-sm text-primary-blue hover:underline z-10 relative"
-            onClick={(e) => e.stopPropagation()}
+            className="text-sm text-primary-blue hover:underline font-medium flex items-center"
           >
-            Download Excel Template (.xlsx)
+            <Download size={16} className="mr-1" /> Download Excel Template
           </a>
         </div>
 
