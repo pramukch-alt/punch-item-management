@@ -69,7 +69,7 @@ export const testEmail = async (req: AuthRequest, res: Response) => {
 
     const info = await transporter.sendMail({
       from: `"Punch Item System" <${user}>`,
-      to: userRec.email, // Send to the admin who clicked the button
+      to: user, // Send to the sender's own email to verify it works!
       subject: "Test Email from Punch Item System",
       text: "This is a test email to verify your SMTP configuration.",
       html: "<b>This is a test email to verify your SMTP configuration.</b>",
