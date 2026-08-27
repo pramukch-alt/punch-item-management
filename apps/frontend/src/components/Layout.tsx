@@ -1,0 +1,206 @@
+import React, { useState, useEffect } from 'react';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { LayoutDashboard, ListChecks, Upload, Users, Settings, LogOut, Bell, Smartphone } from 'lucide-react';
+import api from '../services/api';
+
+const Layout = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const userStr = localStorage.getItem('user');
+  const user = userStr ? JSON.parse(userStr) : null;
+  const userRole = user?.role || '';
+  
+  let initials = 'U';
+  if (user?.name) {
+    const parts = user.name.trim().split(' ');
+    if (parts.length > 1) {
+      initials = (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    } else if (parts.length === 1 && parts[0].length > 0) {
+      initials = parts[0].substring(0, 2).toUpperCase();
+    }
+  } else if (user?.email) {
+    initials = user.email.substring(0, 2).toUpperCase();
+  }
+
+  const [projectName, setProjectName] = useState('Power Plant Alpha');
+
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [clearedNotifs, setClearedNotifs] = useState<string[]>(JSON.parse(localStorage.getItem('clearedNotifs') || '[]'));
+
+  useEffect(() => {
+    const fetchSettingsAndNotifs = async () => {
+      try {
+        const [settingsRes, itemsRes] = await Promise.all([
+          api.get('/settings'),
+          api.get('/punch-items')
+        ]);
+        
+        if (settingsRes.data.PROJECT_NAME) {
+          setProjectName(settingsRes.data.PROJECT_NAME);
+        }
+
+        const allItems = itemsRes.data;
+        let pendingItems = [];
+        
+        if (userRole === 'CONTRACTOR') {
+          pendingItems = allItems.filter((i: any) => i.status === 'OPEN' || i.status === 'REJECTED');
+        } else if (userRole === 'OE') {
+          pendingItems = allItems.filter((i: any) => i.status === 'SUBMIT_TO_OE');
+        } else if (userRole === 'OWNER') {
+          pendingItems = allItems.filter((i: any) => i.status === 'SUBMIT_TO_OWNER');
+        } else if (userRole === 'ADMIN') {
+          pendingItems = allItems.filter((i: any) => i.status !== 'CLOSED' && i.status !== 'CANCELED');
+        }
+
+        // Filter out cleared notifications
+        const activeNotifs = pendingItems.filter((item: any) => !clearedNotifs.includes(item.id + item.status));
+        setNotifications(activeNotifs);
+      } catch (error) {
+        console.error('Failed to fetch data', error);
+      }
+    };
+    fetchSettingsAndNotifs();
+  }, [userRole, clearedNotifs]);
+
+  const handleClearNotifications = () => {
+    const newCleared = [...clearedNotifs, ...notifications.map(n => n.id + n.status)];
+    setClearedNotifs(newCleared);
+    localStorage.setItem('clearedNotifs', JSON.stringify(newCleared));
+    setNotifications([]);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    navigate('/login');
+  };
+
+  const navItems = [
+    { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} />, roles: ['ADMIN', 'CONTRACTOR', 'OE', 'OWNER'] },
+    { name: 'Punch List', path: '/punch-list', icon: <ListChecks size={20} />, roles: ['ADMIN', 'CONTRACTOR', 'OE', 'OWNER'] },
+    { name: 'Import / Export', path: '/import-export', icon: <Upload size={20} />, roles: ['ADMIN', 'CONTRACTOR'] },
+    { name: 'Field App (PWA)', path: '/field-app', icon: <Smartphone size={20} />, roles: ['ADMIN', 'CONTRACTOR'] },
+    { name: 'User Management', path: '/users', icon: <Users size={20} />, roles: ['ADMIN'] },
+    { name: 'Settings', path: '/settings', icon: <Settings size={20} />, roles: ['ADMIN'] },
+  ];
+
+  const filteredNavItems = navItems.filter(item => item.roles.includes(userRole));
+
+  return (
+    <div className="flex h-screen bg-surface-app text-primary-dark print:h-auto print:bg-white">
+      {/* Sidebar - 260px Fixed */}
+      <aside className="w-[260px] bg-surface-card border-r border-surface-border flex flex-col print:hidden">
+        <div className="p-6">
+          <h1 className="text-primary-blue font-bold text-xl">Punch Item Management</h1>
+        </div>
+        
+        <nav className="flex-1 px-4 space-y-1">
+          {filteredNavItems.map((item) => {
+            const isActive = location.pathname.startsWith(item.path);
+            return (
+              <Link
+                key={item.name}
+                to={item.path}
+                className={`flex items-center space-x-3 px-4 py-3 rounded-md transition-colors ${
+                  isActive 
+                    ? 'bg-primary-blue text-white' 
+                    : 'text-surface-textMuted hover:bg-surface-app hover:text-primary-dark'
+                }`}
+              >
+                {item.icon}
+                <span className="font-medium text-sm">{item.name}</span>
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="p-4 border-t border-surface-border">
+          <button onClick={handleLogout} className="flex items-center space-x-3 px-4 py-3 w-full text-left text-surface-textMuted hover:bg-surface-app hover:text-status-open rounded-md transition-colors">
+            <LogOut size={20} />
+            <span className="font-medium text-sm">Logout</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col overflow-hidden print:overflow-visible">
+        <header className="h-16 z-10 bg-surface-card border-b border-surface-border flex items-center justify-between px-8 relative print:hidden">
+          <div className="font-semibold text-lg text-primary-dark">Project: {projectName}</div>
+          <div className="flex items-center space-x-6 relative">
+            
+            {/* Notification Button */}
+            <div className="relative">
+              <button 
+                onClick={() => setShowNotifications(!showNotifications)}
+                className="relative p-2 text-surface-textMuted hover:text-primary-blue transition-transform duration-300 ease-out hover:-translate-y-0.5"
+              >
+                <Bell size={20} />
+                {notifications.length > 0 && (
+                  <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-surface-card"></span>
+                )}
+              </button>
+
+              {/* Notification Popover - Antigravity Glassmorphism Style */}
+              <div 
+                className={`absolute right-0 mt-3 w-80 bg-white/80 backdrop-blur-md border border-white/40 rounded-xl shadow-[0_20px_40px_rgba(0,0,0,0.08)] overflow-hidden transition-all duration-300 ease-out origin-top-right z-50
+                  ${showNotifications ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 -translate-y-2 pointer-events-none'}`}
+              >
+                <div className="p-4 border-b border-surface-border/50 bg-white/40 flex justify-between items-center">
+                  <div>
+                    <h3 className="font-semibold text-primary-dark">Notifications</h3>
+                    <p className="text-xs text-surface-textMuted">You have {notifications.length} pending actions</p>
+                  </div>
+                  {notifications.length > 0 && (
+                    <button 
+                      onClick={handleClearNotifications}
+                      className="text-xs text-primary-blue hover:text-blue-700 font-medium underline"
+                    >
+                      Clear All
+                    </button>
+                  )}
+                </div>
+                <div className="max-h-80 overflow-y-auto">
+                  {notifications.length > 0 ? (
+                    notifications.map(notif => (
+                      <Link 
+                        key={notif.id} 
+                        to={`/punch-list/${notif.id}`}
+                        onClick={() => setShowNotifications(false)}
+                        className="block p-4 border-b border-surface-border/30 hover:bg-white/60 transition-colors"
+                      >
+                        <div className="flex justify-between items-start mb-1">
+                          <span className="font-medium text-sm text-primary-dark">{notif.running_no}</span>
+                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-blue-100 text-primary-blue">
+                            {notif.status.replace(/_/g, ' ')}
+                          </span>
+                        </div>
+                        <p className="text-xs text-surface-textMuted truncate">{notif.description}</p>
+                      </Link>
+                    ))
+                  ) : (
+                    <div className="p-6 text-center text-surface-textMuted text-sm">
+                      All caught up! No pending items.
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* User Profile */}
+            <div className="w-8 h-8 bg-primary-blue rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm" title={user?.name || user?.email || 'User'}>
+              {initials}
+            </div>
+          </div>
+        </header>
+
+        <main className="flex-1 overflow-auto p-8 print:p-0 print:overflow-visible print:m-0">
+          <Outlet />
+        </main>
+      </div>
+    </div>
+  );
+};
+
+export default Layout;
