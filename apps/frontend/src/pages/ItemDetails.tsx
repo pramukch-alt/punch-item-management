@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, CheckCircle, XCircle, Send, Clock } from 'lucide-react';
+import { ArrowLeft, CheckCircle, XCircle, Send,  } from 'lucide-react';
 import ImageCompareViewer from '../components/ImageCompareViewer';
 import RejectModal from '../components/RejectModal';
 import EditItemModal from '../components/EditItemModal';

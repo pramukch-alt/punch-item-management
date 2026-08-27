@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import Modal from './Modal';
 import { AlertCircle } from 'lucide-react';
 import api from '../services/api';
@@ -12,7 +12,7 @@ interface RejectModalProps {
 
 const RejectModal: React.FC<RejectModalProps> = ({ isOpen, onClose, itemId, onSuccess }) => {
   const [comment, setComment] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Filter, Upload, Printer } from 'lucide-react';
 import CreateItemModal from '../components/CreateItemModal';
@@ -289,7 +289,7 @@ const PunchList = () => {
 
       {/* Hidden Print Layout (Only visible during printing) */}
       <div className="hidden print:block print:w-full" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' }}>
-        {filteredItems.map((item, index) => (
+        {filteredItems.map((item) => (
           <div key={item.id} className="print-page w-full min-h-[1000px] mb-8 page-break-after-always" style={{ pageBreakAfter: 'always' }}>
             {/* Header */}
             <table className="w-full border-collapse border border-black mb-1">
