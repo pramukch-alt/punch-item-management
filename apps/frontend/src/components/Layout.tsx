@@ -55,21 +55,32 @@ const Layout = () => {
           pendingItems = allItems.filter((i: any) => i.status !== 'CLOSED' && i.status !== 'CANCELED');
         }
 
-        // Filter out cleared notifications
-        const activeNotifs = pendingItems.filter((item: any) => !clearedNotifs.includes(item.id + item.status));
-        setNotifications(activeNotifs);
+        // Show all pending items in the dropdown
+        setNotifications(pendingItems);
       } catch (error) {
         console.error('Failed to fetch data', error);
       }
     };
     fetchSettingsAndNotifs();
-  }, [userRole, clearedNotifs]);
+  }, [userRole]); // removed clearedNotifs from dependency so it doesn't refetch
+
+  const unreadCount = notifications.filter(n => !clearedNotifs.includes(n.id + n.status)).length;
 
   const handleClearNotifications = () => {
     const newCleared = [...clearedNotifs, ...notifications.map(n => n.id + n.status)];
-    setClearedNotifs(newCleared);
-    localStorage.setItem('clearedNotifs', JSON.stringify(newCleared));
-    setNotifications([]);
+    const uniqueCleared = Array.from(new Set(newCleared));
+    setClearedNotifs(uniqueCleared);
+    localStorage.setItem('clearedNotifs', JSON.stringify(uniqueCleared));
+  };
+
+  const handleReadNotification = (notif: any) => {
+    const key = notif.id + notif.status;
+    if (!clearedNotifs.includes(key)) {
+      const newCleared = [...clearedNotifs, key];
+      setClearedNotifs(newCleared);
+      localStorage.setItem('clearedNotifs', JSON.stringify(newCleared));
+    }
+    setShowNotifications(false);
   };
 
   const handleLogout = () => {
@@ -138,7 +149,7 @@ const Layout = () => {
                 className="relative p-2 text-surface-textMuted hover:text-primary-blue transition-transform duration-300 ease-out hover:-translate-y-0.5"
               >
                 <Bell size={20} />
-                {notifications.length > 0 && (
+                {unreadCount > 0 && (
                   <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-surface-card"></span>
                 )}
               </button>
@@ -151,35 +162,41 @@ const Layout = () => {
                 <div className="p-4 border-b border-surface-border/50 bg-white/40 flex justify-between items-center">
                   <div>
                     <h3 className="font-semibold text-primary-dark">Notifications</h3>
-                    <p className="text-xs text-surface-textMuted">You have {notifications.length} pending actions</p>
+                    <p className="text-xs text-surface-textMuted">You have {unreadCount} unread items</p>
                   </div>
-                  {notifications.length > 0 && (
+                  {unreadCount > 0 && (
                     <button 
                       onClick={handleClearNotifications}
                       className="text-xs text-primary-blue hover:text-blue-700 font-medium underline"
                     >
-                      Clear All
+                      Mark All Read
                     </button>
                   )}
                 </div>
                 <div className="max-h-80 overflow-y-auto">
                   {notifications.length > 0 ? (
-                    notifications.map(notif => (
-                      <Link 
-                        key={notif.id} 
-                        to={`/punch-list/${notif.id}`}
-                        onClick={() => setShowNotifications(false)}
-                        className="block p-4 border-b border-surface-border/30 hover:bg-white/60 transition-colors"
-                      >
-                        <div className="flex justify-between items-start mb-1">
-                          <span className="font-medium text-sm text-primary-dark">{notif.running_no}</span>
+                    notifications.map(notif => {
+                      const isUnread = !clearedNotifs.includes(notif.id + notif.status);
+                      return (
+                        <Link 
+                          key={notif.id} 
+                          to={`/punch-list/${notif.id}`}
+                          onClick={() => handleReadNotification(notif)}
+                          className={`block p-4 border-b border-surface-border/30 transition-colors ${isUnread ? 'bg-blue-50/50 hover:bg-blue-50' : 'hover:bg-white/60'}`}
+                        >
+                          <div className="flex justify-between items-start mb-1">
+                            <span className="font-medium text-sm text-primary-dark flex items-center gap-2">
+                              {isUnread && <span className="w-2 h-2 rounded-full bg-blue-500"></span>}
+                              {notif.running_no}
+                            </span>
                           <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-blue-100 text-primary-blue">
                             {notif.status.replace(/_/g, ' ')}
                           </span>
                         </div>
                         <p className="text-xs text-surface-textMuted truncate">{notif.description}</p>
                       </Link>
-                    ))
+                      );
+                    })
                   ) : (
                     <div className="p-6 text-center text-surface-textMuted text-sm">
                       All caught up! No pending items.
