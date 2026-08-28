@@ -95,7 +95,8 @@ const EditItemModal: React.FC<EditItemModalProps> = ({ isOpen, onClose, onSucces
           <select 
             value={discipline}
             onChange={(e) => setDiscipline(e.target.value)}
-            className="w-full px-4 py-2 border border-surface-border rounded-md focus:outline-none focus:border-primary-blue bg-white"
+            disabled
+            className="w-full px-4 py-2 border border-surface-border rounded-md bg-gray-100 text-gray-500 cursor-not-allowed"
           >
             {disciplines.map(d => (
               <option key={d.id} value={d.id}>{d.id} - {d.name}</option>
