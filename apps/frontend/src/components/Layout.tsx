@@ -55,6 +55,9 @@ const Layout = () => {
           pendingItems = allItems.filter((i: any) => i.status !== 'CLOSED' && i.status !== 'CANCELED');
         }
 
+        // Sort pending items by latest update so the newest notifications are at the top
+        pendingItems.sort((a: any, b: any) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
+        
         // Show all pending items in the dropdown
         setNotifications(pendingItems);
       } catch (error) {
