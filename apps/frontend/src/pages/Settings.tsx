@@ -43,11 +43,12 @@ const Settings = () => {
   const defaultRoles = [
     { id: 'CONTRACTOR', name: 'Contractor', description: 'Can create punch items, upload evidence, and submit to OE.' },
     { id: 'OE', name: 'Owner Engineer (OE)', description: 'Can review, reject, and approve items to Owner.' },
-    { id: 'OWNER', name: 'Owner', description: 'Final approval authority. Can reject or close items.' }
+    { id: 'OWNER', name: 'Owner', description: 'Can review, reject, and close punch items.' },
+    { id: 'ADMIN', name: 'Administrator', description: 'Full access. Can Create and Edit Items, manage users, and configure settings.' }
   ];
 
   const defaultAuthRules = [
-    { action: 'Create Item', contractor: true, oe: false, owner: false, admin: true },
+    { action: 'Create and Edit Item', contractor: true, oe: false, owner: false, admin: true },
     { action: 'Submit to OE', contractor: true, oe: false, owner: false, admin: true },
     { action: 'Approve to Owner', contractor: false, oe: true, owner: false, admin: true },
     { action: 'Reject Item', contractor: false, oe: true, owner: true, admin: true },
