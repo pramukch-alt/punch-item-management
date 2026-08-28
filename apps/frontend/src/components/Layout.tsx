@@ -107,8 +107,9 @@ const Layout = () => {
     <div className="flex h-screen bg-surface-app text-primary-dark print:h-auto print:bg-white">
       {/* Sidebar - 260px Fixed */}
       <aside className="w-[260px] bg-surface-card border-r border-surface-border flex flex-col print:hidden">
-        <div className="p-6">
-          <h1 className="text-primary-blue font-bold text-xl">Punch Item Management</h1>
+        <div className="p-6 flex items-center gap-3">
+          <img src="/logo.png" alt="PIM Logo" className="h-10 w-auto object-contain" />
+          <h1 className="text-primary-blue font-bold text-lg leading-tight">Punch Item<br/>Management</h1>
         </div>
         
         <nav className="flex-1 px-4 space-y-1">
