@@ -133,26 +133,36 @@ const Settings = () => {
     await handleSave(newSettings);
   };
 
+  const [newSystemIdMap, setNewSystemIdMap] = useState<{[key:string]: string}>({});
+  const [newSystemDescMap, setNewSystemDescMap] = useState<{[key:string]: string}>({});
+
   const handleAddSystem = async (pkgId: string) => {
-    const system = newSystemMap[pkgId];
-    if (!system) return;
+    const systemId = newSystemIdMap[pkgId];
+    const systemDesc = newSystemDescMap[pkgId] || '';
+    if (!systemId) return;
+    
     const updated = packages.map((p: any) => {
-        if (p.id === pkgId && !p.systems.includes(system)) {
-            return { ...p, systems: [...p.systems, system] };
+        if (p.id === pkgId) {
+            const exists = p.systems.some((s: any) => (typeof s === 'string' ? s : s.id) === systemId);
+            if (!exists) {
+                return { ...p, systems: [...p.systems, { id: systemId, description: systemDesc }] };
+            }
         }
         return p;
     });
+    
     const newSettings = { ...settings, PACKAGES: JSON.stringify(updated) };
     setSettings(newSettings);
-    setNewSystemMap(prev => ({...prev, [pkgId]: ''}));
+    setNewSystemIdMap(prev => ({...prev, [pkgId]: ''}));
+    setNewSystemDescMap(prev => ({...prev, [pkgId]: ''}));
     await handleSave(newSettings);
   };
 
-  const handleRemoveSystem = async (pkgId: string, system: string) => {
+  const handleRemoveSystem = async (pkgId: string, systemId: string) => {
     if(!window.confirm('Remove this system?')) return;
     const updated = packages.map((p: any) => {
         if (p.id === pkgId) {
-            return { ...p, systems: p.systems.filter((s: string) => s !== system) };
+            return { ...p, systems: p.systems.filter((s: any) => (typeof s === 'string' ? s : s.id) !== systemId) };
         }
         return p;
     });
@@ -168,7 +178,7 @@ const Settings = () => {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-primary-dark">System Configuration</h1>
         <button 
-          onClick={handleSave}
+          onClick={() => handleSave()}
           disabled={loading}
           className="flex items-center space-x-2 bg-primary-blue text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 shadow-md"
         >
@@ -307,24 +317,38 @@ const Settings = () => {
                 </div>
                 <div>
                   <div className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wider">Sub-Systems</div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    {pkg.systems.map((sys: string) => (
-                      <span key={sys} className="bg-white border border-gray-300 px-2 py-1 rounded text-sm text-gray-700 flex items-center space-x-1">
-                        <span>{sys}</span>
-                        <button onClick={() => handleRemoveSystem(pkg.id, sys)} className="text-gray-400 hover:text-red-500 ml-1"><Trash2 size={12}/></button>
-                      </span>
-                    ))}
-                    <div className="flex items-center space-x-1">
+                  <div className="flex flex-col gap-2">
+                    {pkg.systems.map((sys: any) => {
+                      const sysId = typeof sys === 'string' ? sys : sys.id;
+                      const sysDesc = typeof sys === 'string' ? '' : sys.description;
+                      return (
+                        <div key={sysId} className="flex items-center justify-between bg-white border border-gray-300 px-3 py-2 rounded text-sm text-gray-700 w-full max-w-lg">
+                          <div className="flex items-center space-x-2">
+                            <span className="font-semibold text-primary-dark w-24">{sysId}</span>
+                            {sysDesc && <span className="text-gray-500 text-xs border-l border-gray-300 pl-2">{sysDesc}</span>}
+                          </div>
+                          <button onClick={() => handleRemoveSystem(pkg.id, sysId)} className="text-gray-400 hover:text-red-500"><Trash2 size={14}/></button>
+                        </div>
+                      );
+                    })}
+                    <div className="flex items-center space-x-2 mt-1">
                       <input 
                         type="text" 
-                        placeholder="New System" 
-                        value={newSystemMap[pkg.id] || ''}
-                        onChange={e => setNewSystemMap(prev => ({...prev, [pkg.id]: e.target.value}))}
-                        onKeyDown={e => e.key === 'Enter' && handleAddSystem(pkg.id)}
-                        className="border border-gray-300 px-2 py-1 rounded text-sm w-32 focus:outline-none focus:border-primary-blue"
+                        placeholder="ID (e.g. A01-1)" 
+                        value={newSystemIdMap[pkg.id] || ''}
+                        onChange={e => setNewSystemIdMap(prev => ({...prev, [pkg.id]: e.target.value}))}
+                        className="border border-gray-300 px-3 py-1.5 rounded text-sm w-32 focus:outline-none focus:border-primary-blue"
                       />
-                      <button onClick={() => handleAddSystem(pkg.id)} className="bg-white border border-dashed border-gray-400 text-gray-500 px-2 py-1 rounded text-sm hover:bg-gray-100 flex items-center">
-                        <Plus size={14} className="mr-1"/> Add
+                      <input 
+                        type="text" 
+                        placeholder="Description" 
+                        value={newSystemDescMap[pkg.id] || ''}
+                        onChange={e => setNewSystemDescMap(prev => ({...prev, [pkg.id]: e.target.value}))}
+                        onKeyDown={e => e.key === 'Enter' && handleAddSystem(pkg.id)}
+                        className="border border-gray-300 px-3 py-1.5 rounded text-sm w-64 focus:outline-none focus:border-primary-blue"
+                      />
+                      <button onClick={() => handleAddSystem(pkg.id)} className="bg-white border border-dashed border-gray-400 text-gray-500 px-3 py-1.5 rounded text-sm hover:bg-gray-100 flex items-center font-medium">
+                        <Plus size={16} className="mr-1"/> Add
                       </button>
                     </div>
                   </div>

@@ -61,8 +61,13 @@ const ItemDetails = () => {
     }
   };
 
+  const [packages, setPackages] = useState<any[]>([]);
+
   useEffect(() => {
     fetchItemDetails();
+    api.get('/settings').then(res => {
+      if (res.data.PACKAGES) setPackages(JSON.parse(res.data.PACKAGES));
+    }).catch(err => console.error(err));
   }, [id]);
 
   const handleAction = async (action: string) => {
@@ -128,13 +133,20 @@ const ItemDetails = () => {
               {item.package && (
                 <div>
                   <span className="text-xs font-semibold text-surface-textMuted uppercase tracking-wider">Package</span>
-                  <p className="text-sm font-medium text-primary-dark">{item.package}</p>
+                  <p className="text-sm font-medium text-primary-dark">{item.package} {packages.find(p => p.id === item.package)?.name ? `- ${packages.find(p => p.id === item.package)?.name}` : ''}</p>
                 </div>
               )}
               {item.system && (
                 <div>
                   <span className="text-xs font-semibold text-surface-textMuted uppercase tracking-wider">System</span>
-                  <p className="text-sm font-medium text-primary-dark">{item.system}</p>
+                  <p className="text-sm font-medium text-primary-dark">
+                    {item.system} {(() => {
+                      const pkg = packages.find(p => p.id === item.package);
+                      if (!pkg) return '';
+                      const sys = pkg.systems.find((s: any) => (typeof s === 'string' ? s : s.id) === item.system);
+                      return sys && typeof sys !== 'string' && sys.description ? `- ${sys.description}` : '';
+                    })()}
+                  </p>
                 </div>
               )}
               {item.kks_tag && (

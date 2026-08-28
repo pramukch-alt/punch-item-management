@@ -9,49 +9,45 @@ interface CreateItemModalProps {
   onSuccess?: () => void;
 }
 
-const PACKAGES = [
-  { id: 'A01', name: 'A01 - Package A' },
-  { id: 'B01', name: 'B01 - Package B' }
-];
-
-const SYSTEMS: Record<string, { id: string, name: string }[]> = {
-  'A01': [
-    { id: 'A01-1', name: 'A01-1 - System A01-1' },
-    { id: 'A01-2', name: 'A01-2 - System A01-2' },
-    { id: 'A01-3', name: 'A01-3 - System A01-3' },
-    { id: 'A01-4', name: 'A01-4 - System A01-4' },
-    { id: 'A01-5', name: 'A01-5 - System A01-5' },
-    { id: 'A01-6', name: 'A01-6 - System A01-6' },
-    { id: 'A01-7', name: 'A01-7 - System A01-7' }
-  ],
-  'B01': [
-    { id: 'B01-1', name: 'B01-1 - System B01-1' },
-    { id: 'B01-2', name: 'B01-2 - System B01-2' },
-    { id: 'B01-3', name: 'B01-3 - System B01-3' },
-    { id: 'B01-4', name: 'B01-4 - System B01-4' },
-    { id: 'B01-5', name: 'B01-5 - System B01-5' },
-    { id: 'B01-6', name: 'B01-6 - System B01-6' },
-    { id: 'B01-7', name: 'B01-7 - System B01-7' }
-  ]
-};
-
 const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose, onSuccess }) => {
+  const [packages, setPackages] = useState<any[]>([]);
+  const [disciplines, setDisciplines] = useState<any[]>([]);
+
   const [discipline, setDiscipline] = useState('CIV');
   const [category, setCategory] = useState('C');
-  const [pkg, setPkg] = useState('A01');
-  const [system, setSystem] = useState('A01-1');
+  const [pkg, setPkg] = useState('');
+  const [system, setSystem] = useState('');
   const [kksTag, setKksTag] = useState('');
   const [description, setDescription] = useState('');
   const [beforeImage, setBeforeImage] = useState<File | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  React.useEffect(() => {
+    if (isOpen) {
+      api.get('/settings').then(res => {
+        const pkgs = res.data.PACKAGES ? JSON.parse(res.data.PACKAGES) : [];
+        const disc = res.data.DISCIPLINES ? JSON.parse(res.data.DISCIPLINES) : [];
+        setPackages(pkgs);
+        setDisciplines(disc);
+        if (pkgs.length > 0) setPkg(pkgs[0].id);
+        if (disc.length > 0) setDiscipline(disc[0].id);
+      }).catch(err => console.error(err));
+    }
+  }, [isOpen]);
+
   // Auto update system when package changes
   React.useEffect(() => {
-    if (pkg && SYSTEMS[pkg]) {
-      setSystem(SYSTEMS[pkg][0].id);
+    if (pkg && packages.length > 0) {
+      const selectedPkg = packages.find(p => p.id === pkg);
+      if (selectedPkg && selectedPkg.systems.length > 0) {
+        const firstSys = selectedPkg.systems[0];
+        setSystem(typeof firstSys === 'string' ? firstSys : firstSys.id);
+      } else {
+        setSystem('');
+      }
     }
-  }, [pkg]);
+  }, [pkg, packages]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,11 +96,9 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose, onSu
             onChange={(e) => setDiscipline(e.target.value)}
             className="w-full px-4 py-2 border border-surface-border rounded-md focus:outline-none focus:border-primary-blue bg-white"
           >
-            <option value="CIV">CIV - Civil</option>
-            <option value="MEC">MEC - Mechanical</option>
-            <option value="ELE">ELE - Electrical</option>
-            <option value="CSI">CSI - Control System & Instrument</option>
-            <option value="COM">COM - Commissioning</option>
+            {disciplines.map(d => (
+              <option key={d.id} value={d.id}>{d.id} - {d.name}</option>
+            ))}
           </select>
         </div>
         
@@ -116,8 +110,8 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose, onSu
               onChange={(e) => setPkg(e.target.value)}
               className="w-full px-4 py-2 border border-surface-border rounded-md focus:outline-none focus:border-primary-blue bg-white"
             >
-              {PACKAGES.map(p => (
-                <option key={p.id} value={p.id}>{p.name}</option>
+              {packages.map(p => (
+                <option key={p.id} value={p.id}>{p.id} - {p.name}</option>
               ))}
             </select>
           </div>
@@ -128,9 +122,11 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose, onSu
               onChange={(e) => setSystem(e.target.value)}
               className="w-full px-4 py-2 border border-surface-border rounded-md focus:outline-none focus:border-primary-blue bg-white"
             >
-              {(SYSTEMS[pkg] || []).map(s => (
-                <option key={s.id} value={s.id}>{s.name}</option>
-              ))}
+              {(packages.find(p => p.id === pkg)?.systems || []).map((s: any) => {
+                const sId = typeof s === 'string' ? s : s.id;
+                const sName = typeof s === 'string' ? s : `${s.id} - ${s.description}`;
+                return <option key={sId} value={sId}>{sName}</option>;
+              })}
             </select>
           </div>
         </div>

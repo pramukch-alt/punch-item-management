@@ -20,6 +20,8 @@ const PunchList = () => {
   const navigate = useNavigate();
 
   const [userRole, setUserRole] = useState<string>('');
+  const [packages, setPackages] = useState<any[]>([]);
+  const [projectName, setProjectName] = useState('Power Plant Project');
 
   const fetchItems = async () => {
     try {
@@ -36,6 +38,10 @@ const PunchList = () => {
       setUserRole(JSON.parse(userStr).role);
     }
     fetchItems();
+    api.get('/settings').then(res => {
+      if (res.data.PACKAGES) setPackages(JSON.parse(res.data.PACKAGES));
+      if (res.data.PROJECT_NAME) setProjectName(res.data.PROJECT_NAME);
+    }).catch(err => console.error(err));
   }, []);
 
   useEffect(() => {
@@ -172,7 +178,18 @@ const PunchList = () => {
                 <td className="px-6 py-3 font-medium">{item.running_no}</td>
                 <td className="px-6 py-3">{item.discipline}</td>
                 <td className="px-6 py-3">{item.package || '-'}</td>
-                <td className="px-6 py-3">{item.system || '-'}</td>
+                <td className="px-6 py-3">
+                  <div>{item.system || '-'}</div>
+                  {(() => {
+                    const pkg = packages.find(p => p.id === item.package);
+                    if (!pkg) return null;
+                    const sys = pkg.systems.find((s: any) => (typeof s === 'string' ? s : s.id) === item.system);
+                    if (sys && typeof sys !== 'string' && sys.description) {
+                      return <div className="text-xs text-surface-textMuted mt-0.5">{sys.description}</div>;
+                    }
+                    return null;
+                  })()}
+                </td>
                 <td className="px-6 py-3">
                   <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-bold ${
                     item.category === 'A' ? 'bg-red-100 text-red-800' :
@@ -322,17 +339,26 @@ const PunchList = () => {
               <tbody>
                 <tr>
                   <td className="border border-black p-1 font-semibold w-1/4">Project Name:</td>
-                  <td colSpan={3} className="border border-black p-1 text-blue-600">Power Plant Project</td>
+                  <td colSpan={3} className="border border-black p-1 text-blue-600">{projectName}</td>
                 </tr>
                 <tr>
                   <td className="border border-black p-1 font-semibold">Package:</td>
                   <td className="border border-black p-1 text-blue-600 w-1/4">{item.package || '-'}</td>
-                  <td colSpan={2} className="border border-black p-1 text-blue-600">Package Description</td>
+                  <td colSpan={2} className="border border-black p-1 text-blue-600">
+                    {packages.find(p => p.id === item.package)?.name || '-'}
+                  </td>
                 </tr>
                 <tr>
                   <td className="border border-black p-1 font-semibold">System:</td>
                   <td className="border border-black p-1 text-blue-600">{item.system || '-'}</td>
-                  <td colSpan={2} className="border border-black p-1 text-blue-600">System Description</td>
+                  <td colSpan={2} className="border border-black p-1 text-blue-600">
+                    {(() => {
+                      const pkg = packages.find(p => p.id === item.package);
+                      if (!pkg) return '-';
+                      const sys = pkg.systems.find((s: any) => (typeof s === 'string' ? s : s.id) === item.system);
+                      return sys && typeof sys !== 'string' && sys.description ? sys.description : '-';
+                    })()}
+                  </td>
                 </tr>
                 <tr>
                   <td className="border border-black p-1 font-semibold">Created Date</td>
