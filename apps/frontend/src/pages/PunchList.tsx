@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Filter, Upload, Printer } from 'lucide-react';
+import { Plus, Filter, Upload, Printer, ArrowUpDown } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import CreateItemModal from '../components/CreateItemModal';
 import UploadExcelModal from '../components/UploadExcelModal';
@@ -16,6 +16,8 @@ const PunchList = () => {
   const [filterDiscipline, setFilterDiscipline] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+  const [sortField, setSortField] = useState<string>('created_at');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [currentPage, setCurrentPage] = useState(1);
   const navigate = useNavigate();
@@ -47,7 +49,7 @@ const PunchList = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, filterDiscipline, filterCategory, filterStatus]);
+  }, [searchTerm, filterDiscipline, filterCategory, filterStatus, sortField, sortOrder]);
 
   const filteredItems = items.filter(item => {
     const displayStatus = item.status.replace(/_/g, ' ').replace('SUBMIT TO', 'SUBMITTED TO');
@@ -57,11 +59,34 @@ const PunchList = () => {
     const matchesStatus = filterStatus ? item.status === filterStatus : true;
 
     return matchesSearch && matchesDiscipline && matchesCategory && matchesStatus;
+  }).sort((a, b) => {
+    if (sortField === 'running_no') {
+      return sortOrder === 'asc' ? a.running_no.localeCompare(b.running_no) : b.running_no.localeCompare(a.running_no);
+    }
+    if (sortField === 'discipline') {
+      return sortOrder === 'asc' ? a.discipline.localeCompare(b.discipline) : b.discipline.localeCompare(a.discipline);
+    }
+    if (sortField === 'package') {
+      const pkgA = a.package || '';
+      const pkgB = b.package || '';
+      return sortOrder === 'asc' ? pkgA.localeCompare(pkgB) : pkgB.localeCompare(pkgA);
+    }
+    // fallback default sort
+    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
   });
 
   const totalItems = filteredItems.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const paginatedItems = filteredItems.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortOrder('asc');
+    }
+  };
 
   const handleExportExcel = () => {
     const exportData = filteredItems.map(item => ({
@@ -195,9 +220,21 @@ const PunchList = () => {
         <table className="w-full text-left text-sm">
           <thead className="bg-surface-app text-surface-textMuted border-b border-surface-border">
             <tr>
-              <th className="px-6 py-3 font-medium">Running No.</th>
-              <th className="px-6 py-3 font-medium">Discipline</th>
-              <th className="px-6 py-3 font-medium">Package</th>
+              <th className="px-6 py-3 font-medium">
+                <button onClick={() => handleSort('running_no')} className="flex items-center gap-1 hover:text-primary-blue transition-colors">
+                  Running No. <ArrowUpDown size={14} className={sortField === 'running_no' ? 'text-primary-blue' : 'opacity-50'} />
+                </button>
+              </th>
+              <th className="px-6 py-3 font-medium">
+                <button onClick={() => handleSort('discipline')} className="flex items-center gap-1 hover:text-primary-blue transition-colors">
+                  Discipline <ArrowUpDown size={14} className={sortField === 'discipline' ? 'text-primary-blue' : 'opacity-50'} />
+                </button>
+              </th>
+              <th className="px-6 py-3 font-medium">
+                <button onClick={() => handleSort('package')} className="flex items-center gap-1 hover:text-primary-blue transition-colors">
+                  Package <ArrowUpDown size={14} className={sortField === 'package' ? 'text-primary-blue' : 'opacity-50'} />
+                </button>
+              </th>
               <th className="px-6 py-3 font-medium">System</th>
               <th className="px-6 py-3 font-medium">Cat.</th>
               <th className="px-6 py-3 font-medium">Description</th>
