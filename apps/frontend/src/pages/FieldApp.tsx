@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Camera, Download, Share2, Moon, Sun, ChevronRight, CheckCircle2, RotateCcw, Save } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import JSZip from 'jszip';
 
 const PACKAGES = [
   { id: 'A01', name: 'A01 - Package A' },
@@ -147,55 +148,71 @@ export default function FieldApp() {
 
   const [downloadPromptType, setDownloadPromptType] = useState<'EXIT' | 'STEP2' | null>(null);
 
-  const shareCSV = async () => {
+  const exportZip = async () => {
     if (savedItems.length === 0) {
       alert("No items to share");
       return;
     }
-    const headers = ["Date", "User", "Role", "Discipline", "Package", "System", "Location", "KKS Tag", "Category", "Description"];
-    const rows = savedItems.map(item => [
-      item.date,
-      item.user,
-      item.role,
-      item.disciplineStep2,
-      item.package,
-      item.system,
-      item.location,
-      item.kksTag,
-      item.category,
-      `"${item.description.replace(/"/g, '""')}"`
-    ]);
+
+    const zip = new JSZip();
+
+    const headers = ["Item No", "Date", "User", "Role", "Discipline", "Package", "System", "Location", "KKS Tag", "Category", "Description"];
+    const rows = savedItems.map((item, index) => {
+      const itemNo = (index + 1).toString();
+      
+      // If there's an image, add it to the ZIP
+      if (item.image) {
+        // item.image is a base64 string like "data:image/jpeg;base64,/9j/4AAQSkZJRg..."
+        const base64Data = item.image.split(',')[1];
+        zip.file(`${itemNo}.jpg`, base64Data, { base64: true });
+      }
+
+      return [
+        itemNo,
+        item.date,
+        item.user,
+        item.role,
+        item.disciplineStep2,
+        item.package,
+        item.system,
+        item.location,
+        item.kksTag,
+        item.category,
+        `"${item.description.replace(/"/g, '""')}"`
+      ];
+    });
 
     const csvString = headers.join(",") + "\n" + rows.map(e => e.join(",")).join("\n");
-    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-    const file = new File([blob], "punch_items.csv", { type: 'text/csv' });
+    zip.file("punch_items.csv", csvString);
+
+    const zipBlob = await zip.generateAsync({ type: "blob" });
+    const file = new File([zipBlob], "punch_items_export.zip", { type: 'application/zip' });
 
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       try {
         await navigator.share({
           files: [file],
-          title: 'Punch Items',
-          text: 'Here is the exported punch items list.',
+          title: 'Punch Items Export',
+          text: 'Here is the exported punch items list with images.',
         });
       } catch (error) {
         console.error('Error sharing:', error);
-        // Fallback to download if user cancels or it fails
-        fallbackDownload(csvString);
+        fallbackDownloadZip(zipBlob);
       }
     } else {
-      // Fallback for desktop browsers
-      fallbackDownload(csvString);
+      fallbackDownloadZip(zipBlob);
     }
   };
 
-  const fallbackDownload = (csvString: string) => {
-    const csvContent = "data:text/csv;charset=utf-8," + encodeURIComponent(csvString);
+  const fallbackDownloadZip = (blob: Blob) => {
+    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.setAttribute("href", csvContent);
-    link.setAttribute("download", "punch_items.csv");
+    link.href = url;
+    link.download = "punch_items_export.zip";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   const handleSaveAndDone = () => {
@@ -247,7 +264,7 @@ export default function FieldApp() {
   };
 
   const handlePromptShare = () => {
-    shareCSV();
+    exportZip();
     // After download/share, they might still want to proceed
     handlePromptDone();
   };
@@ -258,7 +275,7 @@ export default function FieldApp() {
       <header className="sticky top-0 z-10 p-4 bg-primary-blue text-white shadow-md flex justify-between items-center">
         <h1 className="text-lg font-bold">Punch Item Field App</h1>
         <div className="flex gap-4">
-          <button onClick={shareCSV} className="p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors" title="Share via...">
+          <button onClick={exportZip} className="p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors" title="Share via...">
             <Share2 size={20} />
           </button>
           <button onClick={() => setIsDarkMode(!isDarkMode)} className="p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors" title="Toggle Theme">
@@ -530,7 +547,7 @@ export default function FieldApp() {
         <div className="fixed bottom-4 left-4 right-4 max-w-md mx-auto z-40">
           <div className="bg-green-100 dark:bg-green-900 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-100 px-4 py-3 rounded-lg shadow-lg flex justify-between items-center">
             <span className="font-medium">{savedItems.length} items saved locally</span>
-            <button onClick={shareCSV} className="text-sm font-bold underline flex items-center gap-1">
+            <button onClick={exportZip} className="text-sm font-bold underline flex items-center gap-1">
               Share Now
             </button>
           </div>
