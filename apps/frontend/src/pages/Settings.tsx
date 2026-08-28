@@ -158,6 +158,45 @@ const Settings = () => {
     await handleSave(newSettings);
   };
 
+  const [editingPackageId, setEditingPackageId] = useState<string | null>(null);
+  const [editingPackageName, setEditingPackageName] = useState<string>('');
+
+  const [editingSystemId, setEditingSystemId] = useState<{pkgId: string, sysId: string} | null>(null);
+  const [editingSystemDesc, setEditingSystemDesc] = useState<string>('');
+
+  const saveEditPackage = async (id: string) => {
+    const updated = packages.map((p: any) => p.id === id ? { ...p, name: editingPackageName } : p);
+    const newSettings = { ...settings, PACKAGES: JSON.stringify(updated) };
+    setSettings(newSettings);
+    setEditingPackageId(null);
+    await handleSave(newSettings);
+  };
+
+  const saveEditSystem = async () => {
+    if (!editingSystemId) return;
+    const { pkgId, sysId } = editingSystemId;
+    
+    const updated = packages.map((p: any) => {
+        if (p.id === pkgId) {
+            return { 
+              ...p, 
+              systems: p.systems.map((s: any) => {
+                const sId = typeof s === 'string' ? s : s.id;
+                if (sId === sysId) {
+                  return { id: sId, description: editingSystemDesc };
+                }
+                return s;
+              })
+            };
+        }
+        return p;
+    });
+    const newSettings = { ...settings, PACKAGES: JSON.stringify(updated) };
+    setSettings(newSettings);
+    setEditingSystemId(null);
+    await handleSave(newSettings);
+  };
+
   const handleRemoveSystem = async (pkgId: string, systemId: string) => {
     if(!window.confirm('Remove this system?')) return;
     const updated = packages.map((p: any) => {
@@ -309,10 +348,29 @@ const Settings = () => {
                 <div className="flex justify-between items-center mb-3 pb-2 border-b">
                   <div className="font-bold text-primary-dark flex items-center space-x-2">
                     <span className="bg-primary-blue text-white text-xs px-2 py-0.5 rounded">{pkg.id}</span>
-                    <span>{pkg.name}</span>
+                    {editingPackageId === pkg.id ? (
+                      <input 
+                        type="text" 
+                        value={editingPackageName} 
+                        onChange={e => setEditingPackageName(e.target.value)}
+                        className="border border-gray-300 px-2 py-0.5 rounded text-sm w-48 font-normal"
+                      />
+                    ) : (
+                      <span>{pkg.name}</span>
+                    )}
                   </div>
-                  <div className="flex space-x-2">
-                    <button onClick={() => handleRemovePackage(pkg.id)} className="text-xs text-red-600 hover:underline">Remove</button>
+                  <div className="flex space-x-3 items-center">
+                    {editingPackageId === pkg.id ? (
+                      <>
+                        <button onClick={() => saveEditPackage(pkg.id)} className="text-xs font-semibold text-green-600 hover:underline">Save</button>
+                        <button onClick={() => setEditingPackageId(null)} className="text-xs text-gray-500 hover:underline">Cancel</button>
+                      </>
+                    ) : (
+                      <>
+                        <button onClick={() => { setEditingPackageId(pkg.id); setEditingPackageName(pkg.name); }} className="text-xs font-semibold text-blue-600 hover:underline">Edit Name</button>
+                        <button onClick={() => handleRemovePackage(pkg.id)} className="text-xs text-red-600 hover:underline">Remove</button>
+                      </>
+                    )}
                   </div>
                 </div>
                 <div>
@@ -321,13 +379,37 @@ const Settings = () => {
                     {pkg.systems.map((sys: any) => {
                       const sysId = typeof sys === 'string' ? sys : sys.id;
                       const sysDesc = typeof sys === 'string' ? '' : sys.description;
+                      const isEditing = editingSystemId?.pkgId === pkg.id && editingSystemId?.sysId === sysId;
+
                       return (
                         <div key={sysId} className="flex items-center justify-between bg-white border border-gray-300 px-3 py-2 rounded text-sm text-gray-700 w-full max-w-lg">
-                          <div className="flex items-center space-x-2">
-                            <span className="font-semibold text-primary-dark w-24">{sysId}</span>
-                            {sysDesc && <span className="text-gray-500 text-xs border-l border-gray-300 pl-2">{sysDesc}</span>}
+                          <div className="flex items-center space-x-2 flex-1">
+                            <span className="font-semibold text-primary-dark w-24 flex-shrink-0">{sysId}</span>
+                            {isEditing ? (
+                              <input 
+                                type="text"
+                                value={editingSystemDesc}
+                                onChange={e => setEditingSystemDesc(e.target.value)}
+                                placeholder="Description"
+                                className="border border-gray-300 px-2 py-0.5 rounded text-xs w-full ml-2 focus:outline-none focus:border-primary-blue"
+                              />
+                            ) : (
+                              sysDesc && <span className="text-gray-500 text-xs border-l border-gray-300 pl-2">{sysDesc}</span>
+                            )}
                           </div>
-                          <button onClick={() => handleRemoveSystem(pkg.id, sysId)} className="text-gray-400 hover:text-red-500"><Trash2 size={14}/></button>
+                          <div className="flex space-x-3 items-center ml-4">
+                            {isEditing ? (
+                              <>
+                                <button onClick={() => saveEditSystem()} className="text-xs font-semibold text-green-600 hover:underline">Save</button>
+                                <button onClick={() => setEditingSystemId(null)} className="text-xs text-gray-400 hover:underline">Cancel</button>
+                              </>
+                            ) : (
+                              <>
+                                <button onClick={() => { setEditingSystemId({pkgId: pkg.id, sysId}); setEditingSystemDesc(sysDesc); }} className="text-blue-500 hover:text-blue-700 text-xs font-semibold">Edit</button>
+                                <button onClick={() => handleRemoveSystem(pkg.id, sysId)} className="text-gray-400 hover:text-red-500"><Trash2 size={14}/></button>
+                              </>
+                            )}
+                          </div>
                         </div>
                       );
                     })}
