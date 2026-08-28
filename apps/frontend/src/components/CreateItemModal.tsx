@@ -23,6 +23,10 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose, onSu
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const userStr = localStorage.getItem('user');
+  const user = userStr ? JSON.parse(userStr) : null;
+  const userDiscipline = user?.discipline;
+
   React.useEffect(() => {
     if (isOpen) {
       api.get('/settings').then(res => {
@@ -31,10 +35,15 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose, onSu
         setPackages(pkgs);
         setDisciplines(disc);
         if (pkgs.length > 0) setPkg(pkgs[0].id);
-        if (disc.length > 0) setDiscipline(disc[0].id);
+        
+        if (userDiscipline) {
+          setDiscipline(userDiscipline);
+        } else if (disc.length > 0) {
+          setDiscipline(disc[0].id);
+        }
       }).catch(err => console.error(err));
     }
-  }, [isOpen]);
+  }, [isOpen, userDiscipline]);
 
   // Auto update system when package changes
   React.useEffect(() => {
@@ -94,7 +103,8 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose, onSu
           <select 
             value={discipline}
             onChange={(e) => setDiscipline(e.target.value)}
-            className="w-full px-4 py-2 border border-surface-border rounded-md focus:outline-none focus:border-primary-blue bg-white"
+            disabled={!!userDiscipline}
+            className={`w-full px-4 py-2 border border-surface-border rounded-md focus:outline-none focus:border-primary-blue ${userDiscipline ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : 'bg-white'}`}
           >
             {disciplines.map(d => (
               <option key={d.id} value={d.id}>{d.id} - {d.name}</option>
