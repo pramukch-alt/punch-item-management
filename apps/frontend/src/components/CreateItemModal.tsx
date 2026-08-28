@@ -25,7 +25,8 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose, onSu
 
   const userStr = localStorage.getItem('user');
   const user = userStr ? JSON.parse(userStr) : null;
-  const userDiscipline = user?.discipline;
+  // Admin can select any discipline, others are restricted to their assigned discipline
+  const userDiscipline = user?.role === 'ADMIN' ? null : user?.discipline;
 
   React.useEffect(() => {
     if (isOpen) {
