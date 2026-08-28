@@ -42,14 +42,15 @@ const Layout = () => {
         }
 
         const allItems = itemsRes.data;
+        const userDiscipline = user?.discipline || null;
         let pendingItems = [];
         
         if (userRole === 'CONTRACTOR') {
-          pendingItems = allItems.filter((i: any) => i.status === 'OPEN' || i.status === 'REJECTED');
+          pendingItems = allItems.filter((i: any) => (i.status === 'OPEN' || i.status === 'REJECTED') && (!userDiscipline || i.discipline === userDiscipline));
         } else if (userRole === 'OE') {
-          pendingItems = allItems.filter((i: any) => i.status === 'SUBMIT_TO_OE');
+          pendingItems = allItems.filter((i: any) => i.status === 'SUBMIT_TO_OE' && (!userDiscipline || i.discipline === userDiscipline));
         } else if (userRole === 'OWNER') {
-          pendingItems = allItems.filter((i: any) => i.status === 'SUBMIT_TO_OWNER');
+          pendingItems = allItems.filter((i: any) => i.status === 'SUBMIT_TO_OWNER' && (!userDiscipline || i.discipline === userDiscipline));
         } else if (userRole === 'ADMIN') {
           pendingItems = allItems.filter((i: any) => i.status !== 'CLOSED' && i.status !== 'CANCELED');
         }
