@@ -19,11 +19,10 @@ const Dashboard = () => {
   }, []);
 
   const filteredItems = items.filter(item => {
+    if (item.status === 'CANCELED') return false;
     const itemDate = new Date(item.created_at).toISOString().split('T')[0];
     const isAfterStart = startDate ? itemDate >= startDate : true;
     const isBeforeEnd = endDate ? itemDate <= endDate : true;
-    // Let's exclude canceled items from total counts usually, but let's include if "All Status" implies literally all.
-    // The prompt says "Total Items, Number showing from All Status". So we include CANCELED.
     return isAfterStart && isBeforeEnd;
   });
 
