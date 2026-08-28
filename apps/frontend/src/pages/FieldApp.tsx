@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Camera, Download, Moon, Sun, ChevronRight, CheckCircle2, RotateCcw, Save } from 'lucide-react';
+import { Camera, Download, Share2, Moon, Sun, ChevronRight, CheckCircle2, RotateCcw, Save } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const PACKAGES = [
@@ -147,9 +147,9 @@ export default function FieldApp() {
 
   const [downloadPromptType, setDownloadPromptType] = useState<'EXIT' | 'STEP2' | null>(null);
 
-  const exportCSV = () => {
+  const shareCSV = async () => {
     if (savedItems.length === 0) {
-      alert("No items to export");
+      alert("No items to share");
       return;
     }
     const headers = ["Date", "User", "Role", "Discipline", "Package", "System", "Location", "KKS Tag", "Category", "Description"];
@@ -166,13 +166,32 @@ export default function FieldApp() {
       `"${item.description.replace(/"/g, '""')}"`
     ]);
 
-    const csvContent = "data:text/csv;charset=utf-8," 
-      + headers.join(",") + "\n" 
-      + rows.map(e => e.join(",")).join("\n");
-      
-    const encodedUri = encodeURI(csvContent);
+    const csvString = headers.join(",") + "\n" + rows.map(e => e.join(",")).join("\n");
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const file = new File([blob], "punch_items.csv", { type: 'text/csv' });
+
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({
+          files: [file],
+          title: 'Punch Items',
+          text: 'Here is the exported punch items list.',
+        });
+      } catch (error) {
+        console.error('Error sharing:', error);
+        // Fallback to download if user cancels or it fails
+        fallbackDownload(csvString);
+      }
+    } else {
+      // Fallback for desktop browsers
+      fallbackDownload(csvString);
+    }
+  };
+
+  const fallbackDownload = (csvString: string) => {
+    const csvContent = "data:text/csv;charset=utf-8," + encodeURIComponent(csvString);
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
+    link.setAttribute("href", csvContent);
     link.setAttribute("download", "punch_items.csv");
     document.body.appendChild(link);
     link.click();
@@ -227,9 +246,9 @@ export default function FieldApp() {
     }
   };
 
-  const handlePromptDownload = () => {
-    exportCSV();
-    // After download, they might still want to proceed
+  const handlePromptShare = () => {
+    shareCSV();
+    // After download/share, they might still want to proceed
     handlePromptDone();
   };
 
@@ -239,8 +258,8 @@ export default function FieldApp() {
       <header className="sticky top-0 z-10 p-4 bg-primary-blue text-white shadow-md flex justify-between items-center">
         <h1 className="text-lg font-bold">Punch Item Field App</h1>
         <div className="flex gap-4">
-          <button onClick={exportCSV} className="p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors" title="Export CSV">
-            <Download size={20} />
+          <button onClick={shareCSV} className="p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors" title="Share via...">
+            <Share2 size={20} />
           </button>
           <button onClick={() => setIsDarkMode(!isDarkMode)} className="p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors" title="Toggle Theme">
             {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
@@ -511,7 +530,9 @@ export default function FieldApp() {
         <div className="fixed bottom-4 left-4 right-4 max-w-md mx-auto z-40">
           <div className="bg-green-100 dark:bg-green-900 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-100 px-4 py-3 rounded-lg shadow-lg flex justify-between items-center">
             <span className="font-medium">{savedItems.length} items saved locally</span>
-            <button onClick={exportCSV} className="text-sm font-bold underline">Export Now</button>
+            <button onClick={shareCSV} className="text-sm font-bold underline flex items-center gap-1">
+              Share Now
+            </button>
           </div>
         </div>
       )}
@@ -522,11 +543,11 @@ export default function FieldApp() {
           <div className="bg-white dark:bg-slate-800 w-full max-w-sm rounded-2xl shadow-xl overflow-hidden slide-in">
             <div className="p-6 text-center">
               <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 text-primary-blue mx-auto rounded-full flex items-center justify-center mb-4">
-                <Download size={32} />
+                <Share2 size={32} />
               </div>
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Download Your Data</h3>
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Share Your Data</h3>
               <p className="text-slate-500 dark:text-slate-400 text-sm">
-                You have {savedItems.length} unsaved punch item(s) stored on this device. Please download them before you leave to prevent data loss.
+                You have {savedItems.length} unsaved punch item(s) stored on this device. Please share or download them before you leave to prevent data loss.
               </p>
             </div>
             <div className="p-4 bg-slate-50 dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 flex gap-3">
@@ -537,10 +558,10 @@ export default function FieldApp() {
                 Skip / Done
               </button>
               <button 
-                onClick={handlePromptDownload}
-                className="flex-1 py-3 bg-primary-blue text-white font-bold rounded-xl shadow-[0_4px_14px_0_rgba(0,118,255,0.39)] hover:shadow-[0_6px_20px_rgba(0,118,255,0.23)] hover:bg-blue-700 transition"
+                onClick={handlePromptShare}
+                className="flex-1 py-3 flex items-center justify-center gap-2 bg-primary-blue text-white font-bold rounded-xl shadow-[0_4px_14px_0_rgba(0,118,255,0.39)] hover:shadow-[0_6px_20px_rgba(0,118,255,0.23)] hover:bg-blue-700 transition"
               >
-                Download
+                <Share2 size={18} /> Share
               </button>
             </div>
           </div>

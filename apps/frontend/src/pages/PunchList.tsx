@@ -202,9 +202,13 @@ const PunchList = () => {
                 <td className="px-6 py-3 truncate max-w-xs">{item.description}</td>
                 <td className="px-6 py-3">
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                    ${item.status === 'OPEN' ? 'bg-red-100 text-status-open' : 
-                      item.status === 'CLOSED' ? 'bg-green-100 text-status-closed' : 
-                      'bg-blue-100 text-primary-blue'}`}>
+                    ${item.status === 'OPEN' ? 'bg-red-100 text-red-800' : 
+                      item.status === 'CLOSED' ? 'bg-green-100 text-green-800' : 
+                      item.status === 'SUBMIT_TO_OE' ? 'bg-indigo-100 text-indigo-800' : 
+                      item.status === 'SUBMIT_TO_OWNER' ? 'bg-purple-100 text-purple-800' : 
+                      item.status === 'REJECTED' ? 'bg-orange-100 text-orange-800' : 
+                      item.status === 'CANCELED' ? 'bg-gray-200 text-gray-800' : 
+                      'bg-blue-100 text-blue-800'}`}>
                     {item.status.replace(/_/g, ' ').replace('SUBMIT TO', 'SUBMITTED TO')}
                   </span>
                 </td>
