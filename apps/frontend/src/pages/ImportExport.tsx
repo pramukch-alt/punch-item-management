@@ -36,16 +36,17 @@ const ImportExport = () => {
             <Download size={24} />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-primary-dark">Export to Excel</h2>
+            <h2 className="text-lg font-semibold text-primary-dark">Database Backup (Export All)</h2>
             <p className="text-surface-textMuted text-sm mt-1">
-              Download the current punch list view, applying active filters and search queries.
-              Exported data includes status, discipline, and description for offline review.
+              Download the entire database records including all punch items, regardless of status or filters.
+              Useful for periodic data backups or mass offline archiving.
             </p>
           </div>
           <button 
             className="mt-2 bg-status-closed text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors"
+            onClick={() => alert('Database Backup feature will be implemented soon.')}
           >
-            Download Data
+            Backup Database
           </button>
         </div>
       </div>

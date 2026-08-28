@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Filter, Upload, Printer } from 'lucide-react';
+import * as XLSX from 'xlsx';
 import CreateItemModal from '../components/CreateItemModal';
 import UploadExcelModal from '../components/UploadExcelModal';
 import api from '../services/api';
@@ -62,12 +63,47 @@ const PunchList = () => {
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const paginatedItems = filteredItems.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
+  const handleExportExcel = () => {
+    const exportData = filteredItems.map(item => ({
+      'Running No.': item.running_no,
+      'Discipline': item.discipline,
+      'Package ID': item.package || '',
+      'Package Name': packages.find(p => p.id === item.package)?.name || '',
+      'System ID': item.system || '',
+      'System Description': (() => {
+        const pkg = packages.find(p => p.id === item.package);
+        if (!pkg) return '';
+        const sys = pkg.systems.find((s: any) => (typeof s === 'string' ? s : s.id) === item.system);
+        return sys && typeof sys !== 'string' ? sys.description : '';
+      })(),
+      'Category': item.category || 'C',
+      'KKS Tag': item.kks_tag || '',
+      'Description': item.description,
+      'Status': item.status.replace(/_/g, ' '),
+      'Created Date': new Date(item.created_at).toLocaleDateString(),
+      'Closed Date': item.status === 'CLOSED' ? new Date(item.updated_at).toLocaleDateString() : ''
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Punch List");
+    XLSX.writeFile(workbook, `PunchList_Export_${new Date().toISOString().split('T')[0]}.xlsx`);
+  };
+
   return (
     <div className="space-y-4 print:space-y-0 print:block">
       <div className="flex items-center justify-between print:hidden">
         <h1 className="text-2xl font-bold">Punch List</h1>
+        <div className="flex space-x-3">
+          <button 
+            onClick={handleExportExcel}
+            className="flex items-center space-x-2 bg-white border border-surface-border text-green-700 px-4 py-2 rounded-md hover:bg-green-50 transition-colors"
+          >
+            <Upload size={16} className="rotate-180" />
+            <span>Export to Excel</span>
+          </button>
         {(userRole === 'CONTRACTOR' || userRole === 'ADMIN') && (
-          <div className="flex space-x-3">
+          <>
             <button 
               onClick={() => setIsPrintModalOpen(true)}
               className="flex items-center space-x-2 bg-white border border-surface-border text-primary-dark px-4 py-2 rounded-md hover:bg-surface-app transition-colors"
@@ -89,8 +125,9 @@ const PunchList = () => {
               <Plus size={16} />
               <span>New Item</span>
             </button>
-          </div>
+          </>
         )}
+        </div>
       </div>
 
       <div className="bg-surface-card rounded-lg shadow-sm border border-surface-border overflow-hidden print:hidden">
