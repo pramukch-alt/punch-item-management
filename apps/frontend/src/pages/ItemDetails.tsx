@@ -263,7 +263,7 @@ const ItemDetails = () => {
           <div className="bg-surface-card p-5 rounded-lg shadow-sm border border-surface-border">
             <h2 className="text-lg font-semibold mb-4 text-primary-dark">Actions</h2>
             <div className="space-y-3">
-              {(userRole === 'CONTRACTOR' || userRole === 'ADMIN') && (
+              {(userRole === 'CONTRACTOR' || userRole === 'ADMIN') && (item.status === 'OPEN' || item.status === 'REJECTED') && (
                 <button 
                   onClick={() => handleAction('submit-oe')}
                   className="w-full flex items-center justify-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
@@ -273,7 +273,7 @@ const ItemDetails = () => {
                 </button>
               )}
               
-              {(userRole === 'OE' || userRole === 'ADMIN') && (
+              {(userRole === 'OE' || userRole === 'ADMIN') && item.status === 'SUBMIT_TO_OE' && (
                 <button 
                   onClick={() => handleAction('submit-owner')}
                   className="w-full flex items-center justify-center space-x-2 bg-status-submitToOwner text-white px-4 py-2 rounded-md hover:bg-purple-700 transition-colors"
@@ -283,7 +283,7 @@ const ItemDetails = () => {
                 </button>
               )}
               
-              {(userRole === 'OE' || userRole === 'OWNER' || userRole === 'ADMIN') && (
+              {((userRole === 'OE' && item.status === 'SUBMIT_TO_OE') || (userRole === 'OWNER' && item.status === 'SUBMIT_TO_OWNER') || (userRole === 'ADMIN' && (item.status === 'SUBMIT_TO_OE' || item.status === 'SUBMIT_TO_OWNER'))) && (
                 <button 
                   onClick={() => setIsRejectModalOpen(true)}
                   className="w-full flex items-center justify-center space-x-2 bg-status-rejected text-white px-4 py-2 rounded-md hover:bg-orange-600 transition-colors"
@@ -293,13 +293,13 @@ const ItemDetails = () => {
                 </button>
               )}
               
-              {(userRole === 'OWNER' || userRole === 'ADMIN') && (
+              {(userRole === 'OWNER' || userRole === 'ADMIN') && item.status === 'SUBMIT_TO_OWNER' && (
                 <button 
                   onClick={() => handleAction('close')}
                   className="w-full flex items-center justify-center space-x-2 bg-status-closed text-white px-4 py-2 rounded-md hover:bg-green-600 transition-colors"
                 >
                   <CheckCircle size={18} />
-                  <span>Close Item</span>
+                  <span>Close Punch Item</span>
                 </button>
               )}
 
