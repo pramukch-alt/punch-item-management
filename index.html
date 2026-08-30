@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="./logo.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Punch Item Management</title>
+    <script type="module" crossorigin src="./assets/index-BR1rvBb6.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-rhcrmW1z.css">
+  <link rel="manifest" href="./manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="./registerSW.js"></script></head>
+  <body>
+    <div id="root"></div>
+    <script>
+      // Force unregister all service workers to clear old PWA cache
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          let hasUnregistered = false;
+          for(let registration of registrations) {
+            registration.unregister();
+            hasUnregistered = true;
+          }
+          if (hasUnregistered) {
+            console.log('Unregistered old service workers. Reloading...');
+            window.location.reload(true);
+          }
+        });
+      }
+    </script>
+  </body>
+</html>
