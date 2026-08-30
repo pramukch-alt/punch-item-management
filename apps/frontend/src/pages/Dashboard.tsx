@@ -98,7 +98,8 @@ const Dashboard = () => {
           </div>
         </div>
         
-        <table className="w-full text-left text-sm">
+        <div className="overflow-x-auto">
+        <table className="w-full text-left text-sm min-w-[600px]">
           <thead className="bg-surface-app text-surface-textMuted border-b border-surface-border">
             <tr>
               <th className="px-6 py-4 font-medium">Discipline</th>
@@ -132,6 +133,7 @@ const Dashboard = () => {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

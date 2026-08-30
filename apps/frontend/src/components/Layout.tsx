@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ListChecks, Upload, Users, Settings, LogOut, Bell, Smartphone } from 'lucide-react';
+import { LayoutDashboard, ListChecks, Upload, Users, Settings, LogOut, Bell, Smartphone, Menu, X } from 'lucide-react';
 import api from '../services/api';
 
 const Layout = () => {
@@ -10,6 +10,8 @@ const Layout = () => {
   const userStr = localStorage.getItem('user');
   const user = userStr ? JSON.parse(userStr) : null;
   const userRole = user?.role || '';
+  
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   let initials = 'U';
   if (user?.name) {
@@ -67,6 +69,11 @@ const Layout = () => {
     fetchSettingsAndNotifs();
   }, [userRole]); // removed clearedNotifs from dependency so it doesn't refetch
 
+  // Close mobile menu on route change
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
+
   const unreadCount = notifications.filter(n => !clearedNotifs.includes(n.id + n.status)).length;
 
   const handleClearNotifications = () => {
@@ -104,15 +111,32 @@ const Layout = () => {
   const filteredNavItems = navItems.filter(item => item.roles.includes(userRole));
 
   return (
-    <div className="flex h-screen bg-surface-app text-primary-dark print:h-auto print:bg-white">
-      {/* Sidebar - 260px Fixed */}
-      <aside className="w-[260px] bg-surface-card border-r border-surface-border flex flex-col print:hidden">
-        <div className="p-6 flex items-center gap-3">
-          <img src="/logo.png" alt="PIM Logo" className="h-10 w-auto object-contain" />
-          <h1 className="text-primary-blue font-bold text-lg leading-tight">Punch Item<br/>Management</h1>
+    <div className="flex h-screen bg-surface-app text-primary-dark print:h-auto print:bg-white relative">
+      
+      {/* Mobile Menu Overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-20 md:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Sidebar - Sliding drawer on mobile */}
+      <aside className={`fixed inset-y-0 left-0 z-30 w-[260px] bg-surface-card border-r border-surface-border flex flex-col transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 print:hidden ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="p-6 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <img src="/logo.png" alt="PIM Logo" className="h-10 w-auto object-contain" />
+            <h1 className="text-primary-blue font-bold text-lg leading-tight">Punch Item<br/>Management</h1>
+          </div>
+          <button 
+            className="md:hidden p-1 text-surface-textMuted hover:text-primary-dark"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            <X size={24} />
+          </button>
         </div>
         
-        <nav className="flex-1 px-4 space-y-1">
+        <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
           {filteredNavItems.map((item) => {
             const isActive = location.pathname.startsWith(item.path);
             return (
@@ -132,7 +156,7 @@ const Layout = () => {
           })}
         </nav>
 
-        <div className="p-4 border-t border-surface-border">
+        <div className="p-4 border-t border-surface-border mt-auto">
           <button onClick={handleLogout} className="flex items-center space-x-3 px-4 py-3 w-full text-left text-surface-textMuted hover:bg-surface-app hover:text-status-open rounded-md transition-colors">
             <LogOut size={20} />
             <span className="font-medium text-sm">Logout</span>
@@ -141,9 +165,17 @@ const Layout = () => {
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden print:overflow-visible">
-        <header className="h-16 z-10 bg-surface-card border-b border-surface-border flex items-center justify-between px-8 relative print:hidden">
-          <div className="font-semibold text-lg text-primary-dark">Project: {projectName}</div>
+      <div className="flex-1 flex flex-col overflow-hidden w-full print:overflow-visible">
+        <header className="h-16 z-10 bg-surface-card border-b border-surface-border flex items-center justify-between px-4 md:px-8 relative print:hidden">
+          <div className="flex items-center gap-3">
+            <button 
+              className="md:hidden p-2 -ml-2 text-surface-textMuted hover:text-primary-dark"
+              onClick={() => setIsMobileMenuOpen(true)}
+            >
+              <Menu size={24} />
+            </button>
+            <div className="font-semibold text-base md:text-lg text-primary-dark line-clamp-1">Project: {projectName}</div>
+          </div>
           <div className="flex items-center space-x-6 relative">
             
             {/* Notification Button */}

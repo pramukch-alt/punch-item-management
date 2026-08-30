@@ -217,7 +217,8 @@ const PunchList = () => {
           </div>
         )}
 
-        <table className="w-full text-left text-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm min-w-[800px]">
           <thead className="bg-surface-app text-surface-textMuted border-b border-surface-border">
             <tr>
               <th className="px-6 py-3 font-medium">
@@ -298,6 +299,7 @@ const PunchList = () => {
             )}
           </tbody>
         </table>
+        </div>
 
         {totalItems > 0 && (
           <div className="p-4 border-t border-surface-border flex items-center justify-between bg-surface-app/50 text-sm">

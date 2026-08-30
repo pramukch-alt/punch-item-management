@@ -124,7 +124,8 @@ const UserManagement = () => {
       </div>
 
       <div className="bg-surface-card rounded-lg shadow-sm border border-surface-border overflow-hidden">
-        <table className="w-full text-left border-collapse">
+        <div className="overflow-x-auto">
+        <table className="w-full text-left border-collapse min-w-[800px]">
           <thead>
             <tr className="bg-surface-app border-b border-surface-border text-surface-textMuted text-sm">
               <th className="px-6 py-4 font-medium">Name</th>
@@ -173,6 +174,7 @@ const UserManagement = () => {
             )}
           </tbody>
         </table>
+        </div>
       </div>
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingUserId ? "Edit User" : "Add New User"}>
