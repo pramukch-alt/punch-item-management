@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Camera, Share2, Moon, Sun, RotateCcw, Save, Trash2, Settings, FileCheck, ClipboardList, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import JSZip from 'jszip';
 
 const PACKAGES = [
   { id: 'A01', name: 'A01 - Package A' },
@@ -168,11 +169,13 @@ export default function FieldApp() {
     }
   };
 
-  const shareCSV = async () => {
+  const shareData = async () => {
     if (savedItems.length === 0) {
       alert("No items to share");
       return;
     }
+    
+    // 1. Create CSV
     const headers = ["Item No", "Date", "User", "Role", "Discipline", "Package", "System", "Location", "KKS Tag", "Category", "Description", "Image1", "Image2"];
     const rows = savedItems.map(item => [
       item.itemNo,
@@ -191,33 +194,53 @@ export default function FieldApp() {
     ]);
 
     const csvString = headers.join(",") + "\n" + rows.map(e => e.join(",")).join("\n");
-    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-    const file = new File([blob], "punch_items.csv", { type: 'text/csv' });
+    
+    // 2. Create ZIP
+    const zip = new JSZip();
+    zip.file("punch_items.csv", csvString);
+    
+    savedItems.forEach(item => {
+      if (item.image1) {
+        const base64Data = item.image1.split(',')[1];
+        zip.file(`${item.itemNo}_1.jpg`, base64Data, { base64: true });
+      }
+      if (item.image2) {
+        const base64Data = item.image2.split(',')[1];
+        zip.file(`${item.itemNo}_2.jpg`, base64Data, { base64: true });
+      }
+    });
 
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      try {
+    try {
+      const zipBlob = await zip.generateAsync({ type: "blob" });
+      const file = new File([zipBlob], "punch_items.zip", { type: "application/zip" });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
           files: [file],
-          title: 'Punch Items',
-          text: 'Here is the exported punch items list.',
+          title: 'Punch Items Export',
+          text: 'Here are the exported punch items and photos.',
         });
-      } catch (error) {
-        console.error('Error sharing:', error);
-        fallbackDownload(csvString);
+      } else {
+        fallbackDownload(zipBlob, "punch_items.zip");
       }
-    } else {
-      fallbackDownload(csvString);
+    } catch (error) {
+      console.error('Error creating or sharing zip:', error);
+      alert('Could not share the file. Downloading instead...');
+      // If generateAsync succeeded but share failed, we try fallback again if possible.
+      // But if generateAsync fails, we can't do much.
+      zip.generateAsync({ type: "blob" }).then(blob => fallbackDownload(blob, "punch_items.zip"));
     }
   };
 
-  const fallbackDownload = (csvString: string) => {
-    const csvContent = "data:text/csv;charset=utf-8," + encodeURIComponent(csvString);
+  const fallbackDownload = (blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.setAttribute("href", csvContent);
-    link.setAttribute("download", "punch_items.csv");
+    link.href = url;
+    link.download = filename;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -328,7 +351,7 @@ export default function FieldApp() {
                 <h2 className="text-md font-bold dark:text-white">Data Export</h2>
                 <p className="text-xs text-slate-500">Share {savedItems.length} saved records as CSV</p>
               </div>
-              <button onClick={shareCSV} className="p-3 bg-blue-100 text-primary-blue rounded-xl hover:bg-blue-200 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 transition">
+              <button onClick={shareData} className="p-3 bg-blue-100 text-primary-blue rounded-xl hover:bg-blue-200 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 transition">
                 <Share2 size={24} />
               </button>
             </div>
