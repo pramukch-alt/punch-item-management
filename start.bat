@@ -14,7 +14,7 @@ echo.
 echo ==========================================
 echo    System is starting up!
 echo    - Backend will run on port 3001
-echo    - Frontend will run on port 5173
-echo    (You can access it via http://localhost:5173 or your IP)
+echo    - Frontend will run on port 5174
+echo    (You can access it via http://localhost:5174 or your IP)
 echo ==========================================
 pause

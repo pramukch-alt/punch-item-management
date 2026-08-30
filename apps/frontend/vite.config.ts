@@ -4,6 +4,7 @@ import { defineConfig } from 'vite'
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: './',
   plugins: [
     react(),
     VitePWA({ 
@@ -33,6 +34,7 @@ export default defineConfig({
   ],
   server: {
     host: true,
+    port: 5174,
     proxy: {
       '/api': {
         target: 'http://localhost:3001',
