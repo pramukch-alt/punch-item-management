@@ -167,48 +167,55 @@ const Dashboard = () => {
       <div className="mt-8">
         <h2 className="text-lg font-semibold text-primary-dark mb-4">Punch Item Closure Status by Category</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          {disciplineCategoryData.map((data) => (
-            <div key={data.discipline} className="bg-surface-card rounded-lg shadow-sm border border-surface-border p-4 flex flex-col">
-              <h3 className="text-lg font-bold text-primary-dark mb-4 text-center border-b border-surface-border pb-2">{data.discipline}</h3>
-            
-            <div className="space-y-4 flex-1">
-              {/* Category A */}
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="font-semibold text-red-600">Cat A</span>
-                  <span className="text-surface-textMuted font-medium">{data.A.closed} / {data.A.total}</span>
+          {disciplineCategoryData.map((data) => {
+            const renderCategory = (catName: string, stats: any, colorClass: string, bgClass: string) => {
+              const remaining = stats.total - stats.closed;
+              return (
+                <div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span className={`font-semibold ${colorClass}`}>{catName}</span>
+                    <span className="text-surface-textMuted font-medium">Total: {stats.total}</span>
+                  </div>
+                  <div 
+                    className="w-full h-6 bg-gray-200 rounded flex overflow-hidden text-xs font-bold shadow-inner" 
+                    title={`Total: ${stats.total} | Closed: ${stats.closed} | Remaining: ${remaining}`}
+                  >
+                    {stats.closed > 0 && (
+                      <div 
+                        className={`h-full ${bgClass} flex items-center justify-center text-white transition-all duration-500 ease-out`} 
+                        style={{ width: `${stats.progress}%` }}
+                        title={`Closed: ${stats.closed}`}
+                      >
+                        {stats.progress > 15 ? stats.closed : ''}
+                      </div>
+                    )}
+                    {remaining > 0 && (
+                      <div 
+                        className="h-full flex-1 flex items-center justify-center text-gray-600"
+                        title={`Remaining: ${remaining}`}
+                      >
+                        {stats.progress < 85 ? remaining : ''}
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-                  <div className="h-full bg-red-500 transition-all duration-500 ease-out" style={{ width: `${data.A.progress}%` }}></div>
+              );
+            };
+
+            return (
+              <div key={data.discipline} className="bg-surface-card rounded-lg shadow-sm border border-surface-border p-4 flex flex-col">
+                <h3 className="text-lg font-bold text-primary-dark mb-4 text-center border-b border-surface-border pb-2">{data.discipline}</h3>
+                
+                <div className="space-y-4 flex-1">
+                  {renderCategory('Cat A', data.A, 'text-red-600', 'bg-red-500')}
+                  {renderCategory('Cat B', data.B, 'text-orange-500', 'bg-orange-400')}
+                  {renderCategory('Cat C', data.C, 'text-blue-500', 'bg-blue-400')}
                 </div>
               </div>
-              
-              {/* Category B */}
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="font-semibold text-orange-500">Cat B</span>
-                  <span className="text-surface-textMuted font-medium">{data.B.closed} / {data.B.total}</span>
-                </div>
-                <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-                  <div className="h-full bg-orange-400 transition-all duration-500 ease-out" style={{ width: `${data.B.progress}%` }}></div>
-                </div>
-              </div>
-              
-              {/* Category C */}
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="font-semibold text-blue-500">Cat C</span>
-                  <span className="text-surface-textMuted font-medium">{data.C.closed} / {data.C.total}</span>
-                </div>
-                <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-                  <div className="h-full bg-blue-400 transition-all duration-500 ease-out" style={{ width: `${data.C.progress}%` }}></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
+            );
+          })}
+        </div>
       </div>
-    </div>
 
       <div className="bg-surface-card rounded-lg shadow-sm border border-surface-border overflow-hidden mt-6">
         <div className="p-4 border-b border-surface-border">
