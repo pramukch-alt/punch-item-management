@@ -164,10 +164,12 @@ const Dashboard = () => {
       </div>
 
       {/* Discipline Category Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mt-6">
-        {disciplineCategoryData.map((data) => (
-          <div key={data.discipline} className="bg-surface-card rounded-lg shadow-sm border border-surface-border p-4 flex flex-col">
-            <h3 className="text-lg font-bold text-primary-dark mb-4 text-center border-b border-surface-border pb-2">{data.discipline}</h3>
+      <div className="mt-8">
+        <h2 className="text-lg font-semibold text-primary-dark mb-4">Punch Item Closure Status by Category</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          {disciplineCategoryData.map((data) => (
+            <div key={data.discipline} className="bg-surface-card rounded-lg shadow-sm border border-surface-border p-4 flex flex-col">
+              <h3 className="text-lg font-bold text-primary-dark mb-4 text-center border-b border-surface-border pb-2">{data.discipline}</h3>
             
             <div className="space-y-4 flex-1">
               {/* Category A */}
@@ -206,6 +208,7 @@ const Dashboard = () => {
           </div>
         ))}
       </div>
+    </div>
 
       <div className="bg-surface-card rounded-lg shadow-sm border border-surface-border overflow-hidden mt-6">
         <div className="p-4 border-b border-surface-border">
