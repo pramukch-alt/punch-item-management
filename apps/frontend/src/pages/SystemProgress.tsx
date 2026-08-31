@@ -18,10 +18,27 @@ export default function SystemProgress() {
   const fetchData = async () => {
     try {
       const res = await api.get('/settings');
-      const pkgs = res.data.PACKAGES ? JSON.parse(res.data.PACKAGES) : [];
-      const disc = res.data.DISCIPLINES ? JSON.parse(res.data.DISCIPLINES) : [];
+      let pkgs = res.data.PACKAGES && res.data.PACKAGES !== '[]' ? JSON.parse(res.data.PACKAGES) : [];
+      let disc = res.data.DISCIPLINES && res.data.DISCIPLINES !== '[]' ? JSON.parse(res.data.DISCIPLINES) : [];
       const prog = res.data.SYSTEM_PROGRESS ? JSON.parse(res.data.SYSTEM_PROGRESS) : {};
       
+      if (pkgs.length === 0) {
+        pkgs = [
+          { id: 'A01', name: 'Package A', systems: ['A01-1', 'A01-2', 'A01-3'] },
+          { id: 'B01', name: 'Package B', systems: ['B01-1', 'B01-2'] }
+        ];
+      }
+      
+      if (disc.length === 0) {
+        disc = [
+          { id: 'CIV', name: 'Civil' },
+          { id: 'MEC', name: 'Mechanical' },
+          { id: 'ELE', name: 'Electrical' },
+          { id: 'CSI', name: 'Control System' },
+          { id: 'COM', name: 'Commissioning' }
+        ];
+      }
+
       setPackages(pkgs);
       setDisciplines(disc);
       setProgressData(prog);
