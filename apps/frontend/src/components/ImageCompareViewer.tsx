@@ -1,6 +1,16 @@
 import React, { useState } from 'react';
 import { Camera, CameraOff } from 'lucide-react';
 
+const getFullUrl = (path?: string | null) => {
+  if (!path) return '';
+  if (path.startsWith('http')) return path;
+  if (path.startsWith('data:')) return path;
+  if (import.meta.env.DEV) {
+    return `http://localhost:3000${path}`;
+  }
+  return path;
+};
+
 interface ImageCompareViewerProps {
   beforeImage?: string | null;
   beforeImage2?: string | null;
@@ -66,7 +76,7 @@ const ImageCompareViewer: React.FC<ImageCompareViewerProps> = ({
       </div>
       
       {src ? (
-        <img src={src} alt={label} className="w-full h-full object-contain" />
+        <img src={getFullUrl(src)} alt={label} className="w-full h-full object-contain" />
       ) : (
         <div className="flex flex-col items-center text-surface-textMuted">
           <CameraOff size={48} className="mb-2 opacity-50" />

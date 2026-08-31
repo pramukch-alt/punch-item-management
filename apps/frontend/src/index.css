@@ -24,3 +24,12 @@
     @apply bg-surface-app text-primary-dark antialiased;
   }
 }
+
+@media print {
+  body {
+    background-color: white !important;
+  }
+  @page {
+    margin: 0.5cm;
+  }
+}

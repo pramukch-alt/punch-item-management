@@ -30,8 +30,10 @@ const PunchList = () => {
     if (!path) return '';
     if (path.startsWith('http')) return path;
     if (path.startsWith('data:')) return path;
-    const baseUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000';
-    return `${baseUrl}${path}`;
+    if (import.meta.env.DEV) {
+      return `http://localhost:3000${path}`;
+    }
+    return path;
   };
 
   const fetchItems = async () => {
