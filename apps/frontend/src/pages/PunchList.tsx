@@ -530,7 +530,7 @@ const PunchList = () => {
                     {(() => {
                       const log = item.history?.find((h: any) => h.action === 'CREATED' || h.action === 'SUBMITTED_TO_OE');
                       if (log && log.user?.signature_image_path) {
-                        return <img src={getFullUrl(log.user.signature_image_path)} className="max-h-16 mx-auto object-contain" alt="Signature" />;
+                        return <img src={getFullUrl(log.user.signature_image_path)} className="max-h-16 mx-auto object-contain select-none" draggable="false" onContextMenu={(e) => e.preventDefault()} alt="Signature" />;
                       } else if (log) {
                         return <span className="text-gray-400 italic">Signed</span>;
                       }
@@ -541,7 +541,7 @@ const PunchList = () => {
                     {(() => {
                       const log = item.history?.find((h: any) => h.action === 'SUBMITTED_TO_OWNER');
                       if (log && log.user?.signature_image_path) {
-                        return <img src={getFullUrl(log.user.signature_image_path)} className="max-h-16 mx-auto object-contain" alt="Signature" />;
+                        return <img src={getFullUrl(log.user.signature_image_path)} className="max-h-16 mx-auto object-contain select-none" draggable="false" onContextMenu={(e) => e.preventDefault()} alt="Signature" />;
                       } else if (log) {
                         return <span className="text-gray-400 italic">Signed</span>;
                       }
@@ -552,7 +552,7 @@ const PunchList = () => {
                     {(() => {
                       const log = item.history?.find((h: any) => h.action === 'APPROVED');
                       if (log && log.user?.signature_image_path) {
-                        return <img src={getFullUrl(log.user.signature_image_path)} className="max-h-16 mx-auto object-contain" alt="Signature" />;
+                        return <img src={getFullUrl(log.user.signature_image_path)} className="max-h-16 mx-auto object-contain select-none" draggable="false" onContextMenu={(e) => e.preventDefault()} alt="Signature" />;
                       } else if (log) {
                         return <span className="text-gray-400 italic">Signed</span>;
                       }

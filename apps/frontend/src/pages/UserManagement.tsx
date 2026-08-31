@@ -28,6 +28,16 @@ const UserManagement = () => {
     setIsModalOpen(true);
   };
 
+  const getFullUrl = (path?: string) => {
+    if (!path) return '';
+    if (path.startsWith('http')) return path;
+    if (path.startsWith('data:')) return path;
+    if (import.meta.env.DEV) {
+      return `http://localhost:3000${path}`;
+    }
+    return path;
+  };
+
   const openCreateModal = () => {
     setEditingUserId(null);
     setName('');
@@ -150,7 +160,7 @@ const UserManagement = () => {
                 <td className="px-6 py-3">{user.discipline || '-'}</td>
                 <td className="px-6 py-3">
                   {user.signature_image_path ? (
-                    <img src={user.signature_image_path} alt="signature" className="h-8 object-contain" />
+                    <img src={getFullUrl(user.signature_image_path)} alt="signature" className="h-8 object-contain select-none" draggable="false" onContextMenu={(e) => e.preventDefault()} />
                   ) : (
                     <span className="text-sm text-surface-textMuted">-</span>
                   )}
