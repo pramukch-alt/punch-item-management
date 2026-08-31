@@ -1,15 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
-import { CheckCircle, Circle, Save } from 'lucide-react';
+import { CheckCircle, Circle, Save, Plus, Trash2, X } from 'lucide-react';
+import Modal from '../components/Modal';
+
+interface ProgressSystem {
+  id: string;
+  finished: boolean;
+}
+
+interface ProgressPackage {
+  packageId: string;
+  systems: ProgressSystem[];
+}
 
 export default function SystemProgress() {
   const [packages, setPackages] = useState<any[]>([]);
   const [disciplines, setDisciplines] = useState<any[]>([]);
-  const [progressData, setProgressData] = useState<Record<string, Record<string, string[]>>>({});
+  const [progressData, setProgressData] = useState<Record<string, ProgressPackage[]>>({});
   
   const [selectedDiscipline, setSelectedDiscipline] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalPackageId, setModalPackageId] = useState<string>('');
+  const [modalSelectedSystems, setModalSelectedSystems] = useState<string[]>([]);
 
   useEffect(() => {
     fetchData();
@@ -53,19 +69,68 @@ export default function SystemProgress() {
     }
   };
 
-  const toggleSystem = (pkgId: string, sysId: string) => {
+  const handleOpenModal = () => {
+    setModalPackageId('');
+    setModalSelectedSystems([]);
+    setIsModalOpen(true);
+  };
+
+  const handleAddPackage = () => {
+    if (!selectedDiscipline || !modalPackageId || modalSelectedSystems.length === 0) return;
+    
+    setProgressData(prev => {
+      const newData = { ...prev };
+      if (!newData[selectedDiscipline]) newData[selectedDiscipline] = [];
+      
+      // Check if package already exists
+      const existingPkgIndex = newData[selectedDiscipline].findIndex(p => p.packageId === modalPackageId);
+      
+      if (existingPkgIndex >= 0) {
+        // Merge systems
+        const existingSystems = newData[selectedDiscipline][existingPkgIndex].systems;
+        modalSelectedSystems.forEach(sysId => {
+          if (!existingSystems.find(s => s.id === sysId)) {
+            existingSystems.push({ id: sysId, finished: false });
+          }
+        });
+      } else {
+        // Add new package
+        newData[selectedDiscipline].push({
+          packageId: modalPackageId,
+          systems: modalSelectedSystems.map(sysId => ({ id: sysId, finished: false }))
+        });
+      }
+      
+      return newData;
+    });
+    
+    setIsModalOpen(false);
+  };
+
+  const handleRemovePackage = (pkgId: string) => {
+    if (!selectedDiscipline || !confirm('Are you sure you want to remove this package from this discipline?')) return;
+    setProgressData(prev => {
+      const newData = { ...prev };
+      if (newData[selectedDiscipline]) {
+        newData[selectedDiscipline] = newData[selectedDiscipline].filter(p => p.packageId !== pkgId);
+      }
+      return newData;
+    });
+  };
+
+  const toggleSystemFinish = (pkgId: string, sysId: string) => {
     if (!selectedDiscipline) return;
     
     setProgressData(prev => {
       const newData = { ...prev };
-      if (!newData[selectedDiscipline]) newData[selectedDiscipline] = {};
-      if (!newData[selectedDiscipline][pkgId]) newData[selectedDiscipline][pkgId] = [];
+      const disciplineData = newData[selectedDiscipline] || [];
+      const pkgIndex = disciplineData.findIndex(p => p.packageId === pkgId);
       
-      const isFinished = newData[selectedDiscipline][pkgId].includes(sysId);
-      if (isFinished) {
-        newData[selectedDiscipline][pkgId] = newData[selectedDiscipline][pkgId].filter(id => id !== sysId);
-      } else {
-        newData[selectedDiscipline][pkgId] = [...newData[selectedDiscipline][pkgId], sysId];
+      if (pkgIndex >= 0) {
+        const sysIndex = disciplineData[pkgIndex].systems.findIndex(s => s.id === sysId);
+        if (sysIndex >= 0) {
+          disciplineData[pkgIndex].systems[sysIndex].finished = !disciplineData[pkgIndex].systems[sysIndex].finished;
+        }
       }
       return newData;
     });
@@ -89,10 +154,16 @@ export default function SystemProgress() {
 
   if (loading) return <div className="p-8">Loading...</div>;
 
+  const currentDisciplineData = progressData[selectedDiscipline] || [];
+  
+  // Available systems for modal based on selected package
+  const modalPackageObj = packages.find(p => p.id === modalPackageId);
+  const modalAvailableSystems = modalPackageObj?.systems || [];
+
   return (
     <div className="p-4 md:p-8 space-y-6 max-w-5xl mx-auto pb-24">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-primary-dark">System Progress</h1>
+        <h1 className="text-2xl font-bold text-primary-dark">System Progress (Walkdown)</h1>
         <button 
           onClick={handleSave}
           disabled={saving}
@@ -123,49 +194,163 @@ export default function SystemProgress() {
 
         {/* Content */}
         <div className="p-6">
-          <div className="space-y-8">
-            {packages.map(pkg => {
-              const systems = pkg.systems || [];
-              if (systems.length === 0) return null;
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="font-semibold text-lg text-primary-dark">Walkdown Progress for {selectedDiscipline}</h2>
+              <p className="text-sm text-surface-textMuted mt-1">Import packages and select relevant sub-systems to track your discipline's walkdown progress.</p>
+            </div>
+            <button 
+              onClick={handleOpenModal}
+              className="flex items-center space-x-2 bg-white border border-primary-blue text-primary-blue px-4 py-2 rounded-md hover:bg-blue-50 transition-colors"
+            >
+              <Plus size={18} />
+              <span>Add Package</span>
+            </button>
+          </div>
 
-              return (
-                <div key={pkg.id} className="border border-surface-border rounded-lg overflow-hidden">
-                  <div className="bg-surface-app px-4 py-3 border-b border-surface-border">
-                    <h2 className="font-bold text-primary-dark">Package: {pkg.id} {pkg.name ? `- ${pkg.name}` : ''}</h2>
+          {currentDisciplineData.length === 0 ? (
+            <div className="text-center py-12 border-2 border-dashed border-surface-border rounded-lg bg-slate-50">
+              <p className="text-surface-textMuted mb-4">No packages added for this discipline yet.</p>
+              <button 
+                onClick={handleOpenModal}
+                className="flex items-center space-x-2 bg-white border border-surface-border text-primary-dark px-4 py-2 rounded-md hover:bg-gray-50 transition-colors mx-auto"
+              >
+                <Plus size={18} />
+                <span>Import Package</span>
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-8">
+              {currentDisciplineData.map(pkgData => {
+                const pkg = packages.find(p => p.id === pkgData.packageId);
+                
+                return (
+                  <div key={pkgData.packageId} className="border border-surface-border rounded-lg overflow-hidden">
+                    <div className="bg-surface-app px-4 py-3 border-b border-surface-border flex items-center justify-between">
+                      <h3 className="font-bold text-primary-dark">Package: {pkgData.packageId} {pkg?.name ? `- ${pkg.name}` : ''}</h3>
+                      <button 
+                        onClick={() => handleRemovePackage(pkgData.packageId)}
+                        className="text-red-500 hover:bg-red-50 p-1.5 rounded-md transition-colors"
+                        title="Remove Package from Discipline"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                    <div className="divide-y divide-surface-border">
+                      {pkgData.systems.map((sysProgress) => {
+                        // Find description if available
+                        const originalSys = pkg?.systems?.find((s: any) => (typeof s === 'string' ? s : s.id) === sysProgress.id);
+                        const sysDesc = originalSys && typeof originalSys !== 'string' ? originalSys.description : '';
+
+                        return (
+                          <div key={sysProgress.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 hover:bg-slate-50 transition-colors gap-4">
+                            <div>
+                              <p className="font-medium text-primary-dark">System {sysProgress.id}</p>
+                              {sysDesc && <p className="text-sm text-surface-textMuted">{sysDesc}</p>}
+                            </div>
+                            <button
+                              onClick={() => toggleSystemFinish(pkgData.packageId, sysProgress.id)}
+                              className={`flex items-center justify-center space-x-2 px-4 py-2 rounded-md transition-colors border whitespace-nowrap ${
+                                sysProgress.finished 
+                                  ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100' 
+                                  : 'bg-white text-surface-textMuted border-surface-border hover:bg-gray-50 hover:text-primary-dark'
+                              }`}
+                            >
+                              {sysProgress.finished ? <CheckCircle size={18} /> : <Circle size={18} />}
+                              <span className="font-medium text-sm">{sysProgress.finished ? 'Finished' : 'Mark as Finish'}</span>
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Import Package to Discipline">
+        <div className="space-y-4 p-1">
+          <div>
+            <label className="block text-sm font-medium text-surface-textMuted mb-1">Select Package</label>
+            <select 
+              value={modalPackageId}
+              onChange={(e) => {
+                setModalPackageId(e.target.value);
+                setModalSelectedSystems([]); // Reset selected systems when package changes
+              }}
+              className="w-full border border-surface-border rounded-md px-3 py-2 bg-white focus:outline-none focus:border-primary-blue text-primary-dark"
+            >
+              <option value="">-- Select a Package --</option>
+              {packages.map(p => (
+                <option key={p.id} value={p.id}>{p.id} {p.name ? `- ${p.name}` : ''}</option>
+              ))}
+            </select>
+          </div>
+
+          {modalPackageId && (
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-surface-textMuted mb-2">Select Relevant Systems for Walkdown</label>
+              <div className="border border-surface-border rounded-md overflow-hidden bg-white max-h-60 overflow-y-auto">
+                {modalAvailableSystems.length === 0 ? (
+                  <div className="p-3 text-sm text-surface-textMuted text-center">No systems found in this package</div>
+                ) : (
                   <div className="divide-y divide-surface-border">
-                    {systems.map((sys: any) => {
+                    {modalAvailableSystems.map((sys: any) => {
                       const sysId = typeof sys === 'string' ? sys : sys.id;
                       const sysDesc = typeof sys === 'string' ? '' : sys.description;
-                      const isFinished = progressData[selectedDiscipline]?.[pkg.id]?.includes(sysId);
-
+                      const isSelected = modalSelectedSystems.includes(sysId);
+                      
                       return (
-                        <div key={sysId} className="flex items-center justify-between p-4 hover:bg-slate-50 transition-colors">
+                        <div 
+                          key={sysId} 
+                          className="flex items-center p-3 hover:bg-slate-50 cursor-pointer"
+                          onClick={() => {
+                            if (isSelected) {
+                              setModalSelectedSystems(prev => prev.filter(id => id !== sysId));
+                            } else {
+                              setModalSelectedSystems(prev => [...prev, sysId]);
+                            }
+                          }}
+                        >
+                          <input 
+                            type="checkbox" 
+                            checked={isSelected}
+                            readOnly
+                            className="h-4 w-4 text-primary-blue rounded border-surface-border mr-3" 
+                          />
                           <div>
-                            <p className="font-medium text-primary-dark">System {sysId}</p>
-                            {sysDesc && <p className="text-sm text-surface-textMuted">{sysDesc}</p>}
+                            <p className="text-sm font-medium text-primary-dark">System {sysId}</p>
+                            {sysDesc && <p className="text-xs text-surface-textMuted">{sysDesc}</p>}
                           </div>
-                          <button
-                            onClick={() => toggleSystem(pkg.id, sysId)}
-                            className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-colors border ${
-                              isFinished 
-                                ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100' 
-                                : 'bg-white text-surface-textMuted border-surface-border hover:bg-gray-50 hover:text-primary-dark'
-                            }`}
-                          >
-                            {isFinished ? <CheckCircle size={18} /> : <Circle size={18} />}
-                            <span className="font-medium text-sm">{isFinished ? 'Finished' : 'Mark as Finish'}</span>
-                          </button>
                         </div>
                       );
                     })}
                   </div>
-                </div>
-              );
-            })}
+                )}
+              </div>
+            </div>
+          )}
+
+          <div className="flex justify-end space-x-3 pt-4 border-t border-surface-border mt-6">
+            <button
+              onClick={() => setIsModalOpen(false)}
+              className="px-4 py-2 border border-surface-border rounded-md text-surface-textMuted hover:bg-surface-app transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleAddPackage}
+              disabled={!modalPackageId || modalSelectedSystems.length === 0}
+              className="px-4 py-2 bg-primary-blue text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
+            >
+              Add Selected Systems
+            </button>
           </div>
         </div>
-      </div>
+      </Modal>
     </div>
   );
 }

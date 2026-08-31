@@ -6,16 +6,24 @@ const Dashboard = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
 
+  const [systemProgress, setSystemProgress] = useState<any>({});
+  
   useEffect(() => {
-    const fetchItems = async () => {
+    const fetchData = async () => {
       try {
-        const response = await api.get('/punch-items');
-        setItems(response.data);
+        const [itemsRes, settingsRes] = await Promise.all([
+          api.get('/punch-items'),
+          api.get('/settings')
+        ]);
+        setItems(itemsRes.data);
+        if (settingsRes.data.SYSTEM_PROGRESS) {
+          setSystemProgress(JSON.parse(settingsRes.data.SYSTEM_PROGRESS));
+        }
       } catch (error) {
-        console.error('Failed to fetch items', error);
+        console.error('Failed to fetch dashboard data', error);
       }
     };
-    fetchItems();
+    fetchData();
   }, []);
 
   const filteredItems = items.filter(item => {
@@ -131,6 +139,62 @@ const Dashboard = () => {
                 </td>
               </tr>
             ))}
+          </tbody>
+        </table>
+        </div>
+      </div>
+
+      <div className="bg-surface-card rounded-lg shadow-sm border border-surface-border overflow-hidden mt-6">
+        <div className="p-4 border-b border-surface-border">
+          <h2 className="text-lg font-semibold text-primary-dark">System Progress (Walkdown Completion)</h2>
+        </div>
+        
+        <div className="overflow-x-auto">
+        <table className="w-full text-left text-sm min-w-[600px]">
+          <thead className="bg-surface-app text-surface-textMuted border-b border-surface-border">
+            <tr>
+              <th className="px-6 py-4 font-medium">Discipline</th>
+              <th className="px-6 py-4 font-medium">Package</th>
+              <th className="px-6 py-4 font-medium">Total Systems (Relevant)</th>
+              <th className="px-6 py-4 font-medium">Walkdown Finished</th>
+              <th className="px-6 py-4 font-medium">%Progress</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-surface-border">
+            {Object.keys(systemProgress).length === 0 ? (
+              <tr>
+                <td colSpan={5} className="px-6 py-8 text-center text-surface-textMuted">No system progress data available yet.</td>
+              </tr>
+            ) : (
+              Object.keys(systemProgress).map(disc => {
+                const pkgs = systemProgress[disc] || [];
+                return pkgs.map((pkg: any) => {
+                  const totalSys = pkg.systems?.length || 0;
+                  const finishedSys = pkg.systems?.filter((s: any) => s.finished).length || 0;
+                  const progress = totalSys > 0 ? Math.round((finishedSys / totalSys) * 100) : 0;
+                  
+                  return (
+                    <tr key={`${disc}-${pkg.packageId}`} className="hover:bg-surface-app transition-colors">
+                      <td className="px-6 py-3 font-semibold text-primary-dark">{disc}</td>
+                      <td className="px-6 py-3 text-primary-dark">{pkg.packageId}</td>
+                      <td className="px-6 py-3 text-primary-dark">{totalSys}</td>
+                      <td className="px-6 py-3 text-status-closed font-medium">{finishedSys}</td>
+                      <td className="px-6 py-3">
+                        <div className="flex items-center space-x-2">
+                          <span className="w-8 text-right font-medium text-primary-dark">{progress}%</span>
+                          <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                            <div 
+                              className="h-full bg-status-closed rounded-full transition-all duration-500 ease-out" 
+                              style={{ width: `${progress}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                });
+              })
+            )}
           </tbody>
         </table>
         </div>
