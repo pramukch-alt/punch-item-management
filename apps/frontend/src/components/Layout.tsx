@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ListChecks, Upload, Users, Settings, LogOut, Bell, Smartphone, Menu, X } from 'lucide-react';
+import { LayoutDashboard, ListChecks, Upload, Users, Settings, LogOut, Bell, Smartphone, Menu, X, CheckSquare } from 'lucide-react';
 import api from '../services/api';
 
 const Layout = () => {
@@ -101,6 +101,7 @@ const Layout = () => {
 
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} />, roles: ['ADMIN', 'CONTRACTOR', 'OE', 'OWNER'] },
+    { name: 'System Progress', path: '/system-progress', icon: <CheckSquare size={20} />, roles: ['ADMIN', 'CONTRACTOR'] },
     { name: 'Punch List', path: '/punch-list', icon: <ListChecks size={20} />, roles: ['ADMIN', 'CONTRACTOR', 'OE', 'OWNER'] },
     { name: 'Import / Export', path: '/import-export', icon: <Upload size={20} />, roles: ['ADMIN', 'CONTRACTOR'] },
     { name: 'Field App (PWA)', path: '/field-app', icon: <Smartphone size={20} />, roles: ['ADMIN', 'CONTRACTOR'] },

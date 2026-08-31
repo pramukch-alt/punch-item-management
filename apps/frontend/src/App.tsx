@@ -1,5 +1,6 @@
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Dashboard from './pages/Dashboard';
+import SystemProgress from './pages/SystemProgress';
 import PunchList from './pages/PunchList';
 import ItemDetails from './pages/ItemDetails';
 import ImportExport from './pages/ImportExport';
@@ -19,6 +20,7 @@ function App() {
         <Route path="/" element={<Layout />}>
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
+          <Route path="system-progress" element={<SystemProgress />} />
           <Route path="punch-list" element={<PunchList />} />
           <Route path="punch-list/:id" element={<ItemDetails />} />
           <Route path="import-export" element={<ImportExport />} />
