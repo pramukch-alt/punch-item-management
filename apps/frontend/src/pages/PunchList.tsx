@@ -26,6 +26,14 @@ const PunchList = () => {
   const [packages, setPackages] = useState<any[]>([]);
   const [projectName, setProjectName] = useState('Power Plant Project');
 
+  const getFullUrl = (path?: string) => {
+    if (!path) return '';
+    if (path.startsWith('http')) return path;
+    if (path.startsWith('data:')) return path;
+    const baseUrl = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000';
+    return `${baseUrl}${path}`;
+  };
+
   const fetchItems = async () => {
     try {
       const response = await api.get('/punch-items');
@@ -474,21 +482,21 @@ const PunchList = () => {
                 <tr>
                   <td className="border border-black w-1/2 p-2 h-48 align-top text-blue-600">
                     <div className="mb-2">Before Image_1</div>
-                    {item.before_image_path && <img src={item.before_image_path} className="max-h-40 object-contain" alt="Before" />}
+                    {item.before_image_path && <img src={getFullUrl(item.before_image_path)} className="max-h-40 object-contain" alt="Before" />}
                   </td>
                   <td className="border border-black w-1/2 p-2 h-48 align-top text-blue-600">
                     <div className="mb-2">After Image_1</div>
-                    {item.after_image_path && <img src={item.after_image_path} className="max-h-40 object-contain" alt="After" />}
+                    {item.after_image_path && <img src={getFullUrl(item.after_image_path)} className="max-h-40 object-contain" alt="After" />}
                   </td>
                 </tr>
                 <tr>
                   <td className="border border-black w-1/2 p-2 h-48 align-top text-blue-600">
                     <div className="mb-2">Before Image_2</div>
-                    {item.before_image_2_path && <img src={item.before_image_2_path} className="max-h-40 object-contain" alt="Before 2" />}
+                    {item.before_image_2_path && <img src={getFullUrl(item.before_image_2_path)} className="max-h-40 object-contain" alt="Before 2" />}
                   </td>
                   <td className="border border-black w-1/2 p-2 h-48 align-top text-blue-600">
                     <div className="mb-2">After Image_2</div>
-                    {item.after_image_2_path && <img src={item.after_image_2_path} className="max-h-40 object-contain" alt="After 2" />}
+                    {item.after_image_2_path && <img src={getFullUrl(item.after_image_2_path)} className="max-h-40 object-contain" alt="After 2" />}
                   </td>
                 </tr>
                 <tr>
@@ -517,30 +525,48 @@ const PunchList = () => {
               <tbody>
                 <tr>
                   <td className="border border-black h-20 align-bottom p-1 text-center">
-                    {item.history?.some((h: any) => h.action === 'CREATED' || h.action === 'SUBMITTED_TO_OE') && (
-                      <span className="text-gray-400 italic">Signed</span>
-                    )}
+                    {(() => {
+                      const log = item.history?.find((h: any) => h.action === 'CREATED' || h.action === 'SUBMITTED_TO_OE');
+                      if (log && log.user?.signature_image_path) {
+                        return <img src={getFullUrl(log.user.signature_image_path)} className="max-h-16 mx-auto object-contain" alt="Signature" />;
+                      } else if (log) {
+                        return <span className="text-gray-400 italic">Signed</span>;
+                      }
+                      return null;
+                    })()}
                   </td>
                   <td className="border border-black h-20 align-bottom p-1 text-center">
-                    {item.history?.some((h: any) => h.action === 'SUBMITTED_TO_OWNER') && (
-                      <span className="text-gray-400 italic">Signed</span>
-                    )}
+                    {(() => {
+                      const log = item.history?.find((h: any) => h.action === 'APPROVED' || h.action === 'SUBMITTED_TO_OWNER');
+                      if (log && log.user?.signature_image_path) {
+                        return <img src={getFullUrl(log.user.signature_image_path)} className="max-h-16 mx-auto object-contain" alt="Signature" />;
+                      } else if (log) {
+                        return <span className="text-gray-400 italic">Signed</span>;
+                      }
+                      return null;
+                    })()}
                   </td>
                   <td className="border border-black h-20 align-bottom p-1 text-center">
-                    {item.status === 'CLOSED' && (
-                      <span className="text-gray-400 italic">Signed</span>
-                    )}
+                    {(() => {
+                      const log = item.history?.find((h: any) => h.action === 'CLOSED');
+                      if (log && log.user?.signature_image_path) {
+                        return <img src={getFullUrl(log.user.signature_image_path)} className="max-h-16 mx-auto object-contain" alt="Signature" />;
+                      } else if (log) {
+                        return <span className="text-gray-400 italic">Signed</span>;
+                      }
+                      return null;
+                    })()}
                   </td>
                 </tr>
                 <tr>
-                  <td className="border border-black p-1">Name:</td>
-                  <td className="border border-black p-1">Name:</td>
-                  <td className="border border-black p-1">Name:</td>
+                  <td className="border border-black p-1">Name: {item.history?.find((h: any) => h.action === 'CREATED' || h.action === 'SUBMITTED_TO_OE')?.user?.name || ''}</td>
+                  <td className="border border-black p-1">Name: {item.history?.find((h: any) => h.action === 'APPROVED' || h.action === 'SUBMITTED_TO_OWNER')?.user?.name || ''}</td>
+                  <td className="border border-black p-1">Name: {item.history?.find((h: any) => h.action === 'CLOSED')?.user?.name || ''}</td>
                 </tr>
                 <tr>
-                  <td className="border border-black p-1">Date:</td>
-                  <td className="border border-black p-1">Date:</td>
-                  <td className="border border-black p-1">Date:</td>
+                  <td className="border border-black p-1">Date: {item.history?.find((h: any) => h.action === 'CREATED' || h.action === 'SUBMITTED_TO_OE') ? new Date(item.history.find((h: any) => h.action === 'CREATED' || h.action === 'SUBMITTED_TO_OE').timestamp).toLocaleDateString() : ''}</td>
+                  <td className="border border-black p-1">Date: {item.history?.find((h: any) => h.action === 'APPROVED' || h.action === 'SUBMITTED_TO_OWNER') ? new Date(item.history.find((h: any) => h.action === 'APPROVED' || h.action === 'SUBMITTED_TO_OWNER').timestamp).toLocaleDateString() : ''}</td>
+                  <td className="border border-black p-1">Date: {item.history?.find((h: any) => h.action === 'CLOSED') ? new Date(item.history.find((h: any) => h.action === 'CLOSED').timestamp).toLocaleDateString() : ''}</td>
                 </tr>
               </tbody>
             </table>
