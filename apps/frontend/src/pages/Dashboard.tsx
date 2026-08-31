@@ -51,6 +51,25 @@ const Dashboard = () => {
     return { discipline: disc, ...getMetrics(discItems) };
   });
 
+  const disciplineCategoryData = disciplines.map(disc => {
+    const discItems = filteredItems.filter(i => i.discipline === disc);
+    
+    const getCatStats = (cat: string) => {
+      const catItems = discItems.filter(i => i.category === cat);
+      const total = catItems.length;
+      const closed = catItems.filter(i => i.status === 'CLOSED').length;
+      const progress = total > 0 ? Math.round((closed / total) * 100) : 0;
+      return { total, closed, progress };
+    };
+
+    return {
+      discipline: disc,
+      A: getCatStats('A'),
+      B: getCatStats('B'),
+      C: getCatStats('C'),
+    };
+  });
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -142,6 +161,50 @@ const Dashboard = () => {
           </tbody>
         </table>
         </div>
+      </div>
+
+      {/* Discipline Category Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mt-6">
+        {disciplineCategoryData.map((data) => (
+          <div key={data.discipline} className="bg-surface-card rounded-lg shadow-sm border border-surface-border p-4 flex flex-col">
+            <h3 className="text-lg font-bold text-primary-dark mb-4 text-center border-b border-surface-border pb-2">{data.discipline}</h3>
+            
+            <div className="space-y-4 flex-1">
+              {/* Category A */}
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="font-semibold text-red-600">Cat A</span>
+                  <span className="text-surface-textMuted font-medium">{data.A.closed} / {data.A.total}</span>
+                </div>
+                <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="h-full bg-red-500 transition-all duration-500 ease-out" style={{ width: `${data.A.progress}%` }}></div>
+                </div>
+              </div>
+              
+              {/* Category B */}
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="font-semibold text-orange-500">Cat B</span>
+                  <span className="text-surface-textMuted font-medium">{data.B.closed} / {data.B.total}</span>
+                </div>
+                <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="h-full bg-orange-400 transition-all duration-500 ease-out" style={{ width: `${data.B.progress}%` }}></div>
+                </div>
+              </div>
+              
+              {/* Category C */}
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="font-semibold text-blue-500">Cat C</span>
+                  <span className="text-surface-textMuted font-medium">{data.C.closed} / {data.C.total}</span>
+                </div>
+                <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                  <div className="h-full bg-blue-400 transition-all duration-500 ease-out" style={{ width: `${data.C.progress}%` }}></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
 
       <div className="bg-surface-card rounded-lg shadow-sm border border-surface-border overflow-hidden mt-6">
