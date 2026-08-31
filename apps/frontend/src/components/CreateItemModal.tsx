@@ -17,6 +17,7 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose, onSu
   const [category, setCategory] = useState('C');
   const [pkg, setPkg] = useState('');
   const [system, setSystem] = useState('');
+  const [location, setLocation] = useState('');
   const [kksTag, setKksTag] = useState('');
   const [description, setDescription] = useState('');
   const [beforeImage, setBeforeImage] = useState<File | null>(null);
@@ -76,7 +77,8 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose, onSu
       formData.append('category', category);
       formData.append('package', pkg);
       formData.append('system', system);
-      if (kksTag.trim()) formData.append('kks_tag', kksTag.trim());
+      if (location) formData.append('location', location);
+      if (kksTag) formData.append('kks_tag', kksTag);
       formData.append('description', description);
       if (beforeImage) formData.append('before_image', beforeImage);
 
@@ -155,15 +157,27 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose, onSu
           </select>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-primary-dark mb-1">KKS Tag (Optional)</label>
-          <input 
-            type="text"
-            value={kksTag}
-            onChange={(e) => setKksTag(e.target.value)}
-            className="w-full px-4 py-2 border border-surface-border rounded-md focus:outline-none focus:border-primary-blue bg-white"
-            placeholder="e.g. 10LAB10 CT001"
-          />
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-primary-dark mb-1">Location</label>
+            <input 
+              type="text" 
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              placeholder="e.g. Building A, Floor 2"
+              className="w-full px-4 py-2 border border-surface-border rounded-md focus:outline-none focus:border-primary-blue bg-white"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-primary-dark mb-1">KKS Tag</label>
+            <input 
+              type="text" 
+              value={kksTag}
+              onChange={(e) => setKksTag(e.target.value)}
+              placeholder="Optional"
+              className="w-full px-4 py-2 border border-surface-border rounded-md focus:outline-none focus:border-primary-blue bg-white"
+            />
+          </div>
         </div>
 
         <div>

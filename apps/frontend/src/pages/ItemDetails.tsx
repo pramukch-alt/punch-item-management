@@ -153,6 +153,12 @@ const ItemDetails = () => {
                   </p>
                 </div>
               )}
+              {item.location && (
+                <div className="col-span-2">
+                  <span className="text-xs font-semibold text-surface-textMuted uppercase tracking-wider">Location</span>
+                  <p className="text-sm font-medium text-primary-dark">{item.location}</p>
+                </div>
+              )}
               {item.kks_tag && (
                 <div className="col-span-2">
                   <span className="text-xs font-semibold text-surface-textMuted uppercase tracking-wider">KKS Tag</span>
