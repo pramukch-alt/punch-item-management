@@ -8,7 +8,15 @@ export const getPunchItems = async (req: AuthRequest, res: Response) => {
     const items = await prisma.punchItem.findMany({
       include: {
         created_by: {
-          select: { id: true, email: true }
+          select: { id: true, email: true, name: true, signature_image_path: true }
+        },
+        history: {
+          include: {
+            user: {
+              select: { id: true, email: true, name: true, signature_image_path: true }
+            }
+          },
+          orderBy: { timestamp: 'desc' }
         }
       },
       orderBy: { created_at: 'desc' }
@@ -26,12 +34,12 @@ export const getPunchItemById = async (req: AuthRequest, res: Response) => {
       where: { id },
       include: {
         created_by: {
-          select: { id: true, email: true, name: true, role: true }
+          select: { id: true, email: true, name: true, role: true, signature_image_path: true }
         },
         history: {
           include: {
             user: {
-              select: { id: true, email: true, name: true, role: true }
+              select: { id: true, email: true, name: true, role: true, signature_image_path: true }
             }
           },
           orderBy: { timestamp: 'desc' }
@@ -46,7 +54,7 @@ export const getPunchItemById = async (req: AuthRequest, res: Response) => {
 };
 
 export const createPunchItem = async (req: AuthRequest, res: Response) => {
-  const { discipline, description, category, kks_tag, package: pkg, system } = req.body;
+  const { discipline, description, category, kks_tag, package: pkg, system, location } = req.body;
   const userId = req.user?.id;
 
   if (!userId) return res.status(401).json({ message: 'Unauthorized' });
@@ -93,6 +101,7 @@ export const createPunchItem = async (req: AuthRequest, res: Response) => {
           category: (category || 'C') as Category,
           package: pkg || null,
           system: system || null,
+          location: location || null,
           kks_tag: kks_tag || null,
           description,
           status: 'OPEN',

@@ -28,6 +28,7 @@ model PunchItem {
   category          Category           @default(C)
   package           String?
   system            String?
+  location          String?
   kks_tag           String?
   description       String
   status            Status             @default(OPEN)

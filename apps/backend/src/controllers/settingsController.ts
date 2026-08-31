@@ -59,6 +59,38 @@ export const updateSystemProgress = async (req: AuthRequest, res: Response) => {
   }
 };
 
+import fs from 'fs';
+import path from 'path';
+
+export const factoryReset = async (req: AuthRequest, res: Response) => {
+  try {
+    // 1. Delete DB Records
+    await prisma.$transaction([
+      prisma.punchItemHistory.deleteMany({}),
+      prisma.punchItem.deleteMany({}),
+      prisma.setting.deleteMany({
+        where: { key: 'SYSTEM_PROGRESS' }
+      })
+    ]);
+
+    // 2. Delete Uploaded Images
+    const uploadsDir = path.join(__dirname, '../../uploads/punch-items');
+    if (fs.existsSync(uploadsDir)) {
+      const files = fs.readdirSync(uploadsDir);
+      for (const file of files) {
+        if (file !== '.gitkeep' && file !== '.placeholder') {
+          fs.unlinkSync(path.join(uploadsDir, file));
+        }
+      }
+    }
+
+    res.json({ message: 'Factory reset completed successfully. All punch items and images have been cleared.' });
+  } catch (error) {
+    console.error('Factory Reset Error:', error);
+    res.status(500).json({ message: 'Failed to perform factory reset', error });
+  }
+};
+
 import nodemailer from 'nodemailer';
 
 export const testEmail = async (req: AuthRequest, res: Response) => {

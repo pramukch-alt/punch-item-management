@@ -566,9 +566,9 @@ const PunchList = () => {
                   <td className="border border-black p-1">Name: {item.history?.find((h: any) => h.action === 'CLOSED')?.user?.name || ''}</td>
                 </tr>
                 <tr>
-                  <td className="border border-black p-1">Date: {item.history?.find((h: any) => h.action === 'CREATED' || h.action === 'SUBMITTED_TO_OE') ? new Date(item.history.find((h: any) => h.action === 'CREATED' || h.action === 'SUBMITTED_TO_OE').timestamp).toLocaleDateString() : ''}</td>
-                  <td className="border border-black p-1">Date: {item.history?.find((h: any) => h.action === 'APPROVED' || h.action === 'SUBMITTED_TO_OWNER') ? new Date(item.history.find((h: any) => h.action === 'APPROVED' || h.action === 'SUBMITTED_TO_OWNER').timestamp).toLocaleDateString() : ''}</td>
-                  <td className="border border-black p-1">Date: {item.history?.find((h: any) => h.action === 'CLOSED') ? new Date(item.history.find((h: any) => h.action === 'CLOSED').timestamp).toLocaleDateString() : ''}</td>
+                  <td className="border border-black p-1">Date: {item.history?.some((h: any) => h.action === 'CREATED' || h.action === 'SUBMITTED_TO_OE') ? new Date().toLocaleDateString() : ''}</td>
+                  <td className="border border-black p-1">Date: {item.history?.some((h: any) => h.action === 'APPROVED' || h.action === 'SUBMITTED_TO_OWNER') ? new Date().toLocaleDateString() : ''}</td>
+                  <td className="border border-black p-1">Date: {item.history?.some((h: any) => h.action === 'CLOSED') ? new Date().toLocaleDateString() : ''}</td>
                 </tr>
               </tbody>
             </table>
