@@ -11,7 +11,10 @@ router.get('/', authenticateToken, getSettings);
 router.put('/', authenticateToken, requireRole(['ADMIN']), updateSettings);
 
 // Test email route
-import { testEmail } from '../controllers/settingsController';
+import { testEmail, updateSystemProgress } from '../controllers/settingsController';
 router.post('/test-email', authenticateToken, requireRole(['ADMIN']), testEmail);
+
+// Progress route for Contractor and Admin
+router.put('/system-progress', authenticateToken, requireRole(['ADMIN', 'CONTRACTOR']), updateSystemProgress);
 
 export default router;

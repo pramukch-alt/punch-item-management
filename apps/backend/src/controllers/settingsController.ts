@@ -43,6 +43,22 @@ export const updateSettings = async (req: AuthRequest, res: Response) => {
   }
 };
 
+export const updateSystemProgress = async (req: AuthRequest, res: Response) => {
+  const { systemProgress } = req.body;
+  if (!systemProgress) return res.status(400).json({ message: 'Missing systemProgress data' });
+  
+  try {
+    await prisma.setting.upsert({
+      where: { key: 'SYSTEM_PROGRESS' },
+      update: { value: JSON.stringify(systemProgress) },
+      create: { key: 'SYSTEM_PROGRESS', value: JSON.stringify(systemProgress) }
+    });
+    res.json({ message: 'System progress updated successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
 import nodemailer from 'nodemailer';
 
 export const testEmail = async (req: AuthRequest, res: Response) => {

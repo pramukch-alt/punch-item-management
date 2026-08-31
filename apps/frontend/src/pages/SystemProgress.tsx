@@ -139,14 +139,13 @@ export default function SystemProgress() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await api.post('/settings', {
-        key: 'SYSTEM_PROGRESS',
-        value: JSON.stringify(progressData)
+      await api.put('/settings/system-progress', {
+        systemProgress: progressData
       });
       alert('Progress saved successfully');
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert('Failed to save progress');
+      alert(err.response?.data?.message || 'Failed to save progress');
     } finally {
       setSaving(false);
     }
