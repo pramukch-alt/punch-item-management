@@ -4,6 +4,7 @@ import SystemProgress from './pages/SystemProgress';
 import PunchList from './pages/PunchList';
 import ItemDetails from './pages/ItemDetails';
 import ImportExport from './pages/ImportExport';
+import DatabaseManagement from './pages/DatabaseManagement';
 import UserManagement from './pages/UserManagement';
 import Settings from './pages/Settings';
 import Login from './pages/Login';
@@ -23,7 +24,7 @@ function App() {
           <Route path="system-progress" element={<SystemProgress />} />
           <Route path="punch-list" element={<PunchList />} />
           <Route path="punch-list/:id" element={<ItemDetails />} />
-          <Route path="import-export" element={<ImportExport />} />
+          <Route path="database-management" element={<DatabaseManagement />} />
           <Route path="users" element={<UserManagement />} />
           <Route path="settings" element={<Settings />} />
         </Route>
