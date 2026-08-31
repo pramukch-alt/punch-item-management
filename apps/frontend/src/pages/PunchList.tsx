@@ -539,7 +539,7 @@ const PunchList = () => {
                   </td>
                   <td className="border border-black h-20 align-bottom p-1 text-center">
                     {(() => {
-                      const log = item.history?.find((h: any) => h.action === 'APPROVED' || h.action === 'SUBMITTED_TO_OWNER');
+                      const log = item.history?.find((h: any) => h.action === 'SUBMITTED_TO_OWNER');
                       if (log && log.user?.signature_image_path) {
                         return <img src={getFullUrl(log.user.signature_image_path)} className="max-h-16 mx-auto object-contain" alt="Signature" />;
                       } else if (log) {
@@ -550,7 +550,7 @@ const PunchList = () => {
                   </td>
                   <td className="border border-black h-20 align-bottom p-1 text-center">
                     {(() => {
-                      const log = item.history?.find((h: any) => h.action === 'CLOSED');
+                      const log = item.history?.find((h: any) => h.action === 'APPROVED');
                       if (log && log.user?.signature_image_path) {
                         return <img src={getFullUrl(log.user.signature_image_path)} className="max-h-16 mx-auto object-contain" alt="Signature" />;
                       } else if (log) {
@@ -562,13 +562,13 @@ const PunchList = () => {
                 </tr>
                 <tr>
                   <td className="border border-black p-1">Name: {item.history?.find((h: any) => h.action === 'CREATED' || h.action === 'SUBMITTED_TO_OE')?.user?.name || ''}</td>
-                  <td className="border border-black p-1">Name: {item.history?.find((h: any) => h.action === 'APPROVED' || h.action === 'SUBMITTED_TO_OWNER')?.user?.name || ''}</td>
-                  <td className="border border-black p-1">Name: {item.history?.find((h: any) => h.action === 'CLOSED')?.user?.name || ''}</td>
+                  <td className="border border-black p-1">Name: {item.history?.find((h: any) => h.action === 'SUBMITTED_TO_OWNER')?.user?.name || ''}</td>
+                  <td className="border border-black p-1">Name: {item.history?.find((h: any) => h.action === 'APPROVED')?.user?.name || ''}</td>
                 </tr>
                 <tr>
                   <td className="border border-black p-1">Date: {item.history?.some((h: any) => h.action === 'CREATED' || h.action === 'SUBMITTED_TO_OE') ? new Date().toLocaleDateString() : ''}</td>
-                  <td className="border border-black p-1">Date: {item.history?.some((h: any) => h.action === 'APPROVED' || h.action === 'SUBMITTED_TO_OWNER') ? new Date().toLocaleDateString() : ''}</td>
-                  <td className="border border-black p-1">Date: {item.history?.some((h: any) => h.action === 'CLOSED') ? new Date().toLocaleDateString() : ''}</td>
+                  <td className="border border-black p-1">Date: {item.history?.some((h: any) => h.action === 'SUBMITTED_TO_OWNER') ? new Date().toLocaleDateString() : ''}</td>
+                  <td className="border border-black p-1">Date: {item.history?.some((h: any) => h.action === 'APPROVED') ? new Date().toLocaleDateString() : ''}</td>
                 </tr>
               </tbody>
             </table>
