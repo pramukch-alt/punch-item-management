@@ -38,7 +38,7 @@ const DatabaseManagement = () => {
       const a = document.createElement('a');
       a.setAttribute('hidden', '');
       a.setAttribute('href', url);
-      a.setAttribute('download', `database_backup_${new Date().toISOString().split('T')[0]}.csv`);
+      a.setAttribute('download', `Database_Backup_v1.0.0-beta_${new Date().toISOString().split('T')[0]}.csv`);
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -141,7 +141,7 @@ const DatabaseManagement = () => {
                   <h2 className="text-lg font-semibold text-primary-dark">Database Backup (Export All)</h2>
                   <p className="text-surface-textMuted mt-1">
                     Download the entire transactional database (all Punch Items) regardless of status or filters. 
-                    This export is generated in real-time as a CSV file.
+                    This export is generated in real-time as a CSV file and is tagged with the current system version (v1.0.0-beta) for safe keeping.
                   </p>
                   <button 
                     onClick={handleBackup}

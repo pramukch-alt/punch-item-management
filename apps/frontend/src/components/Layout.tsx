@@ -162,6 +162,9 @@ const Layout = () => {
             <LogOut size={20} />
             <span className="font-medium text-sm">Logout</span>
           </button>
+          <div className="mt-4 text-center text-xs text-surface-textMuted">
+            Version v1.0.0-beta
+          </div>
         </div>
       </aside>
 
