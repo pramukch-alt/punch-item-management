@@ -100,12 +100,12 @@ const Layout = () => {
   };
 
   const navItems = [
-    { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} />, roles: ['ADMIN', 'CONTRACTOR', 'OE', 'OWNER'] },
-    { name: 'System Progress', path: '/system-progress', icon: <CheckSquare size={20} />, roles: ['ADMIN', 'CONTRACTOR'] },
-    { name: 'Punch List', path: '/punch-list', icon: <ListChecks size={20} />, roles: ['ADMIN', 'CONTRACTOR', 'OE', 'OWNER'] },
-    { name: 'Database Management', path: '/database-management', icon: <Database size={20} />, roles: ['ADMIN', 'CONTRACTOR'] },
-    { name: 'Field App (PWA)', path: '/field-app', icon: <Smartphone size={20} />, roles: ['ADMIN', 'CONTRACTOR'] },
-    { name: 'User Management', path: '/users', icon: <Users size={20} />, roles: ['ADMIN'] },
+    { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} />, roles: ['ADMIN', 'SUPERVISOR', 'CONTRACTOR', 'OE', 'OWNER'] },
+    { name: 'System Progress', path: '/system-progress', icon: <CheckSquare size={20} />, roles: ['ADMIN', 'SUPERVISOR', 'CONTRACTOR'] },
+    { name: 'Punch List', path: '/punch-list', icon: <ListChecks size={20} />, roles: ['ADMIN', 'SUPERVISOR', 'CONTRACTOR', 'OE', 'OWNER'] },
+    { name: 'Database Management', path: '/database-management', icon: <Database size={20} />, roles: ['ADMIN', 'SUPERVISOR', 'CONTRACTOR'] },
+    { name: 'Field App (PWA)', path: '/field-app', icon: <Smartphone size={20} />, roles: ['ADMIN', 'SUPERVISOR', 'CONTRACTOR'] },
+    { name: 'User Management', path: '/users', icon: <Users size={20} />, roles: ['ADMIN', 'SUPERVISOR'] },
     { name: 'Settings', path: '/settings', icon: <Settings size={20} />, roles: ['ADMIN'] },
   ];
 

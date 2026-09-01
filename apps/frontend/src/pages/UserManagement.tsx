@@ -17,6 +17,11 @@ const UserManagement = () => {
   const [loading, setLoading] = useState(false);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
 
+  const currentUserStr = localStorage.getItem('user');
+  const currentUser = currentUserStr ? JSON.parse(currentUserStr) : null;
+  const isSupervisor = currentUser?.role === 'SUPERVISOR';
+  const isAdmin = currentUser?.role === 'ADMIN';
+
   const openEditModal = (user: any) => {
     setEditingUserId(user.id);
     setName(user.name || '');
@@ -167,12 +172,16 @@ const UserManagement = () => {
                 </td>
                 <td className="px-6 py-3 text-right">
                   <div className="flex justify-end space-x-2">
-                    <button onClick={() => openEditModal(user)} className="text-surface-textMuted hover:text-primary-blue transition-colors p-2" title="Edit User">
-                      <Pencil size={18} />
-                    </button>
-                    <button onClick={() => handleDelete(user.id)} className="text-red-500 hover:text-red-700 transition-colors p-2" title="Delete User">
-                      <Trash2 size={18} />
-                    </button>
+                    {!(isSupervisor && user.role === 'ADMIN') && (
+                      <button onClick={() => openEditModal(user)} className="text-surface-textMuted hover:text-primary-blue transition-colors p-2" title="Edit User">
+                        <Pencil size={18} />
+                      </button>
+                    )}
+                    {!(isSupervisor && user.role === 'ADMIN') && (
+                      <button onClick={() => handleDelete(user.id)} className="text-red-500 hover:text-red-700 transition-colors p-2" title="Delete User">
+                        <Trash2 size={18} />
+                      </button>
+                    )}
                   </div>
                 </td>
               </tr>
@@ -230,9 +239,10 @@ const UserManagement = () => {
               className="w-full px-4 py-2 border border-surface-border rounded-md focus:outline-none focus:border-primary-blue bg-white"
             >
               <option value="CONTRACTOR">Contractor</option>
+              <option value="SUPERVISOR">Supervisor (QC)</option>
               <option value="OE">OE (Owner Engineer)</option>
               <option value="OWNER">Owner</option>
-              <option value="ADMIN">Administrator</option>
+              {isAdmin && <option value="ADMIN">Administrator</option>}
             </select>
           </div>
           <div>
