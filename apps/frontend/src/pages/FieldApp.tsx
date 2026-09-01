@@ -253,8 +253,8 @@ export default function FieldApp() {
             <button onClick={() => setIsDarkMode(!isDarkMode)} className="p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors" title="Toggle Theme">
               {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
             </button>
-            <button onClick={() => navigate('/')} className="p-1 hover:opacity-80 transition-opacity" title="Exit">
-              <img src="/exit-icon.svg" alt="Exit" className="w-7 h-7" />
+            <button onClick={() => navigate('/')} className="hover:opacity-80 transition-opacity flex items-center justify-center" title="Exit">
+              <img src="/exit-icon.svg" alt="Exit" className="w-9 h-9" />
             </button>
           </div>
         </div>
