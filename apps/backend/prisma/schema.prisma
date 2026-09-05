@@ -62,6 +62,7 @@ enum Role {
   CONTRACTOR
   OE
   OWNER
+  SUPERVISOR
 }
 
 enum Category {

@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { getPunchItems, getPunchItemById, createPunchItem, updatePunchItem } from '../controllers/punchItemController';
 import { submitToOE, submitToOwner, closeItem, rejectItem, cancelItem, replyToReject } from '../controllers/workflowController';
-import { importExcel } from '../controllers/importController';
+import { importExcel, bulkImageUpload } from '../controllers/importController';
 import { authenticateToken, requireRole } from '../middleware/auth';
 import multer from 'multer';
 import path from 'path';
@@ -36,8 +36,8 @@ router.get('/', getPunchItems);
 router.get('/:id', getPunchItemById);
 router.post('/', requireRole(['CONTRACTOR', 'ADMIN']), imageUpload.fields([{ name: 'before_image', maxCount: 1 }, { name: 'before_image_2', maxCount: 1 }, { name: 'after_image', maxCount: 1 }, { name: 'after_image_2', maxCount: 1 }]), createPunchItem);
 router.put('/:id', requireRole(['CONTRACTOR']), imageUpload.fields([{ name: 'before_image', maxCount: 1 }, { name: 'before_image_2', maxCount: 1 }, { name: 'after_image', maxCount: 1 }, { name: 'after_image_2', maxCount: 1 }]), updatePunchItem);
-router.post('/import', requireRole(['CONTRACTOR', 'ADMIN']), memoryUpload.single('file'), importExcel);
-
+router.post('/import', requireRole(['CONTRACTOR', 'ADMIN', 'SUPERVISOR']), memoryUpload.single('file'), importExcel);
+router.post('/bulk-images', requireRole(['CONTRACTOR', 'ADMIN', 'SUPERVISOR']), imageUpload.array('images', 50), bulkImageUpload);
 // Workflow routes
 router.post('/:id/submit-oe', requireRole(['CONTRACTOR', 'ADMIN']), submitToOE);
 router.post('/:id/submit-owner', requireRole(['OE', 'ADMIN']), submitToOwner);

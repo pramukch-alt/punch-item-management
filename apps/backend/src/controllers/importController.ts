@@ -3,6 +3,7 @@ import { AuthRequest } from '../middleware/auth';
 import prisma from '../utils/prisma';
 import * as xlsx from 'xlsx';
 import { Discipline } from '@prisma/client';
+import fs from 'fs';
 
 export const importExcel = async (req: AuthRequest, res: Response) => {
   if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
@@ -95,4 +96,57 @@ export const importExcel = async (req: AuthRequest, res: Response) => {
   } catch (error) {
     res.status(500).json({ message: 'Error processing Excel file', error });
   }
+};
+export const bulkImageUpload = async (req: AuthRequest, res: Response) => {
+  if (!req.files || !Array.isArray(req.files) || req.files.length === 0) {
+    return res.status(400).json({ message: 'No images uploaded' });
+  }
+
+  const userId = req.user?.id;
+  if (!userId) return res.status(401).json({ message: 'Unauthorized' });
+
+  const pattern = /^([A-Za-z0-9]+-\d+-\d+)_(before|after)_(1|2)(?:\.[a-zA-Z0-9]+)?$/i;
+  let successCount = 0;
+  const errors: string[] = [];
+
+  for (const file of req.files) {
+    const match = file.originalname.match(pattern);
+    if (!match) {
+      errors.push(`Invalid filename format: ${file.originalname}`);
+      fs.unlinkSync(file.path);
+      continue;
+    }
+
+    const running_no = match[1].toUpperCase();
+    const type = match[2].toLowerCase(); // 'before' | 'after'
+    const index = match[3]; // '1' | '2'
+
+    const targetField = type === 'before' 
+      ? (index === '1' ? 'before_image_path' : 'before_image_2_path')
+      : (index === '1' ? 'after_image_path' : 'after_image_2_path');
+
+    try {
+      const punchItem = await prisma.punchItem.findUnique({ where: { running_no } });
+      if (!punchItem) {
+        errors.push(`Punch Item not found for: ${file.originalname}`);
+        fs.unlinkSync(file.path);
+        continue;
+      }
+
+      await prisma.punchItem.update({
+        where: { id: punchItem.id },
+        data: { [targetField]: `/uploads/punch-items/${file.filename}` }
+      });
+
+      await prisma.punchItemHistory.create({
+        data: { punch_item_id: punchItem.id, user_id: userId, action: 'UPDATED', comment: `Bulk Image Upload: ${type} ${index}` }
+      });
+      successCount++;
+    } catch (err) {
+      errors.push(`Error processing ${file.originalname}`);
+      if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
+    }
+  }
+
+  res.json({ message: `Successfully uploaded ${successCount} images.`, errors });
 };

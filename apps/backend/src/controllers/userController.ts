@@ -42,6 +42,10 @@ export const createUser = async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ message: 'Email already exists' });
     }
 
+    if (req.user?.role === 'SUPERVISOR' && role === 'ADMIN') {
+      return res.status(403).json({ message: 'Supervisor cannot create ADMIN users' });
+    }
+
     const password_hash = await bcrypt.hash(password, 10);
     
     // Handle signature upload if provided
@@ -71,6 +75,11 @@ export const createUser = async (req: AuthRequest, res: Response) => {
 export const deleteUser = async (req: AuthRequest, res: Response) => {
   const id = req.params.id as string;
   try {
+    const userToDelete = await prisma.user.findUnique({ where: { id } });
+    if (req.user?.role === 'SUPERVISOR' && userToDelete?.role === 'ADMIN') {
+      return res.status(403).json({ message: 'Supervisor cannot delete ADMIN users' });
+    }
+    
     await prisma.user.delete({ where: { id } });
     res.json({ message: 'User deleted successfully' });
   } catch (error) {
@@ -86,6 +95,13 @@ export const updateUser = async (req: AuthRequest, res: Response) => {
   try {
     const existingUser = await prisma.user.findUnique({ where: { id } });
     if (!existingUser) return res.status(404).json({ message: 'User not found' });
+
+    if (req.user?.role === 'SUPERVISOR' && existingUser.role === 'ADMIN') {
+      return res.status(403).json({ message: 'Supervisor cannot edit ADMIN users' });
+    }
+    if (req.user?.role === 'SUPERVISOR' && role === 'ADMIN') {
+      return res.status(403).json({ message: 'Supervisor cannot grant ADMIN role' });
+    }
 
     if (lowercaseEmail && lowercaseEmail !== existingUser.email) {
       const emailTaken = await prisma.user.findUnique({ where: { email: lowercaseEmail } });

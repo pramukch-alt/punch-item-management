@@ -18,7 +18,7 @@ const upload = multer({ storage });
 const router = Router();
 
 router.use(authenticateToken);
-router.use(requireRole(['ADMIN'])); // Only Admin can manage users
+router.use(requireRole(['ADMIN', 'SUPERVISOR'])); // Admin and Supervisor can manage users
 
 router.get('/', getUsers);
 router.post('/', upload.single('signature'), createUser);
