@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Download, Upload, AlertTriangle, Database } from 'lucide-react';
 import UploadExcelModal from '../components/UploadExcelModal';
+import UploadImagesModal from '../components/UploadImagesModal';
 import api from '../services/api';
 
 const DatabaseManagement = () => {
   const [activeTab, setActiveTab] = useState('upload');
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isImageUploadModalOpen, setIsImageUploadModalOpen] = useState(false);
   
   const [confirmText, setConfirmText] = useState('');
   const [isResetting, setIsResetting] = useState(false);
@@ -127,6 +129,24 @@ const DatabaseManagement = () => {
                   </button>
                 </div>
               </div>
+              <div className="flex items-start space-x-4 pt-6 border-t border-surface-border mt-6">
+                <div className="p-3 bg-purple-50 text-purple-600 rounded-lg shrink-0">
+                  <Upload size={24} />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-primary-dark">Bulk Upload Images</h2>
+                  <p className="text-surface-textMuted mt-1">
+                    Upload multiple images at once to attach to punch items. 
+                    Filenames must follow the pattern: <code>[RunningNo]_[before/after]_[1/2].jpg</code> (e.g. <code>ELE-2026-0034_before_1.jpg</code>).
+                  </p>
+                  <button 
+                    onClick={() => setIsImageUploadModalOpen(true)}
+                    className="mt-4 bg-purple-600 text-white px-5 py-2.5 rounded-md hover:bg-purple-700 transition-colors font-medium"
+                  >
+                    Upload Multiple Images
+                  </button>
+                </div>
+              </div>
             </div>
           )}
 
@@ -215,7 +235,15 @@ const DatabaseManagement = () => {
 
       <UploadExcelModal 
         isOpen={isUploadModalOpen} 
-        onClose={() => setIsUploadModalOpen(false)} 
+        onClose={() => setIsUploadModalOpen(false)}
+      />
+      <UploadImagesModal
+        isOpen={isImageUploadModalOpen}
+        onClose={() => setIsImageUploadModalOpen(false)}
+        onSuccess={() => {
+          setIsImageUploadModalOpen(false);
+          alert('Images uploaded successfully');
+        }}
       />
     </div>
   );
