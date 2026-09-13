@@ -159,7 +159,7 @@ const Layout = () => {
       <aside className={`fixed inset-y-0 left-0 z-30 w-[260px] bg-surface-card border-r border-surface-border flex flex-col transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 print:hidden ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="px-5 py-4 flex items-center justify-between border-b border-surface-border/50 mb-2">
           <div className="flex items-center flex-1">
-            <img src="/PunchPro_SideBar.png" alt="PunchPro Logo" className="w-[200px] h-[40px] object-contain" />
+            <img src="/PunchPro_Ver2_Login.png" alt="PunchPro Logo" className="w-[200px] h-[50px] object-contain" />
           </div>
           <button 
             className="md:hidden p-1 text-surface-textMuted hover:text-primary-dark"
