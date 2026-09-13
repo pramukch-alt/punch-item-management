@@ -27,6 +27,15 @@ export const login = async (req: Request, res: Response) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
+    if (user.role !== 'SUPERADMIN' && user.project) {
+      if (user.project.status === 'SUSPENDED') {
+        return res.status(403).json({ message: 'Project subscription is currently suspended. Please contact administrator.' });
+      }
+      if (user.project.status === 'EXPIRED' || (user.project.end_date && new Date(user.project.end_date) < new Date())) {
+        return res.status(403).json({ message: 'Project subscription has expired. Please contact administrator to renew.' });
+      }
+    }
+
     const token = jwt.sign(
       { id: user.id, role: user.role, project_id: user.project_id },
       JWT_SECRET,
@@ -43,6 +52,9 @@ export const login = async (req: Request, res: Response) => {
         discipline: user.discipline,
         signature_image_path: user.signature_image_path,
         project_id: user.project_id,
+        project_name: user.project?.name,
+        project_status: user.project?.status,
+        end_date: user.project?.end_date,
         pwa_enabled: user.project?.package?.pwa_enabled ?? true, // fallback to true for backward compatibility or default
         report_enabled: user.project?.package?.report_enabled ?? true,
         max_punch_items: user.project?.package?.max_punch_items ?? null

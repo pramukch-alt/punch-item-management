@@ -123,15 +123,27 @@ model Package {
   projects          Project[]
 }
 
+enum ProjectStatus {
+  ACTIVE
+  SUSPENDED
+  EXPIRED
+}
+
 model Project {
-  id             String      @id @default(uuid())
-  name           String
-  package_id     String?
-  package        Package?    @relation(fields: [package_id], references: [id])
-  start_date     DateTime?
-  end_date       DateTime?
-  users          User[]
-  punch_items    PunchItem[]
-  created_at     DateTime    @default(now())
-  updated_at     DateTime    @updatedAt
+  id              String         @id @default(uuid())
+  name            String
+  package_id      String?
+  package         Package?       @relation(fields: [package_id], references: [id])
+  customer_name   String?
+  customer_info   String?
+  admin_name      String?
+  admin_contact   String?
+  duration_months Int?
+  start_date      DateTime?
+  end_date        DateTime?
+  status          ProjectStatus  @default(ACTIVE)
+  users           User[]
+  punch_items     PunchItem[]
+  created_at      DateTime       @default(now())
+  updated_at      DateTime       @updatedAt
 }
