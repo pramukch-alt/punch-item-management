@@ -9,7 +9,7 @@ export default defineConfig({
     react(),
     VitePWA({ 
       registerType: 'autoUpdate',
-      includeAssets: ['logo.png', 'PunchPro_titlebar.png', 'PunchPro_SideBar.png'],
+      includeAssets: ['logo.png', 'PunchPro_titlebar.png', 'PunchPro_SideBar.png', 'PunchPro_Ver1_Titlebar.png'],
       manifest: {
         name: 'PunchPro Field App',
         short_name: 'PunchPro',
@@ -19,12 +19,12 @@ export default defineConfig({
         display: 'standalone',
         icons: [
           {
-            src: 'PunchPro_titlebar.png',
+            src: 'PunchPro_Ver1_Titlebar.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: 'PunchPro_titlebar.png',
+            src: 'PunchPro_Ver1_Titlebar.png',
             sizes: '512x512',
             type: 'image/png'
           }
