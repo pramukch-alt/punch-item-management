@@ -248,7 +248,7 @@ export default function FieldApp() {
       {/* App Header */}
       <header className="sticky top-0 z-20 bg-primary-blue text-white shadow-md">
         <div className="flex justify-between items-center p-4">
-          <h1 className="text-lg font-bold">Punch Item App</h1>
+          <h1 className="text-lg font-bold">PunchPro Field App</h1>
           <div className="flex gap-4 items-center">
             <button onClick={() => setIsDarkMode(!isDarkMode)} className="p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors" title="Toggle Theme">
               {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}

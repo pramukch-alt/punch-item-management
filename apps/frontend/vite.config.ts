@@ -11,9 +11,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['logo.png'],
       manifest: {
-        name: 'Punch Item Field App',
-        short_name: 'Punch App',
-        description: 'PWA for Punch Item Management',
+        name: 'PunchPro Field App',
+        short_name: 'PunchPro',
+        description: 'PWA for PunchPro',
         theme_color: '#2E5BFF',
         background_color: '#F4F6F9',
         display: 'standalone',

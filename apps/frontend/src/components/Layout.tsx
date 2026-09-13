@@ -25,7 +25,7 @@ const Layout = () => {
     initials = user.email.substring(0, 2).toUpperCase();
   }
 
-  const [projectName, setProjectName] = useState(user?.project_name || 'Punch Item Management');
+  const [projectName, setProjectName] = useState(user?.project_name || 'PunchPro');
 
   const [notifications, setNotifications] = useState<any[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
@@ -57,7 +57,7 @@ const Layout = () => {
           } catch(e) {}
         } else {
           // Tenant users should see their specific Project Name
-          setProjectName(user?.project_name || settingsRes.data.PROJECT_NAME || 'Punch Item Management');
+          setProjectName(user?.project_name || settingsRes.data.PROJECT_NAME || 'PunchPro');
         }
 
         const allItems = itemsRes.data;
@@ -144,10 +144,9 @@ const Layout = () => {
 
       {/* Sidebar - Sliding drawer on mobile */}
       <aside className={`fixed inset-y-0 left-0 z-30 w-[260px] bg-surface-card border-r border-surface-border flex flex-col transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 print:hidden ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="p-6 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src="/logo.png" alt="PIM Logo" className="h-10 w-auto object-contain" />
-            <h1 className="text-primary-blue font-bold text-lg leading-tight">Punch Item<br/>Management</h1>
+        <div className="p-5 flex items-center justify-between border-b border-surface-border/50 mb-2">
+          <div className="flex items-center">
+            <img src="/logo.png" alt="PunchPro Logo" className="h-12 w-auto object-contain max-w-[180px]" />
           </div>
           <button 
             className="md:hidden p-1 text-surface-textMuted hover:text-primary-dark"

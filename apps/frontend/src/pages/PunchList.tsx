@@ -26,7 +26,7 @@ const PunchList = () => {
   const user = userStr ? JSON.parse(userStr) : null;
   const [userRole, setUserRole] = useState<string>(user?.role || '');
   const [packages, setPackages] = useState<any[]>([]);
-  const [projectName, setProjectName] = useState(user?.project_name || 'Punch Item Management');
+  const [projectName, setProjectName] = useState(user?.project_name || 'PunchPro');
 
   const getFullUrl = (path?: string) => {
     if (!path) return '';
