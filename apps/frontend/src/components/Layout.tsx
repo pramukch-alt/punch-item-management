@@ -146,7 +146,7 @@ const Layout = () => {
       <aside className={`fixed inset-y-0 left-0 z-30 w-[260px] bg-surface-card border-r border-surface-border flex flex-col transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 print:hidden ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="px-5 py-4 flex items-center justify-between border-b border-surface-border/50 mb-2">
           <div className="flex items-center flex-1">
-            <img src="/logo.png" alt="PunchPro Logo" className="w-auto h-10 md:h-11 max-w-[200px] object-contain" />
+            <img src="/PunchPro_SideBar.png" alt="PunchPro Logo" className="w-[200px] h-[40px] object-contain" />
           </div>
           <button 
             className="md:hidden p-1 text-surface-textMuted hover:text-primary-dark"
@@ -197,6 +197,8 @@ const Layout = () => {
             >
               <Menu size={24} />
             </button>
+            <img src="/PunchPro_titlebar.png" alt="PunchPro" className="h-8 md:h-9 w-auto object-contain" />
+            <div className="h-5 w-[1px] bg-surface-border hidden sm:block"></div>
             <div className="font-semibold text-base md:text-lg text-primary-dark line-clamp-1">Project: {projectName}</div>
           </div>
           <div className="flex items-center space-x-6 relative">
