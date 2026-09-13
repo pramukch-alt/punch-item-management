@@ -25,14 +25,16 @@ const Layout = () => {
     initials = user.email.substring(0, 2).toUpperCase();
   }
 
-  const [projectName, setProjectName] = useState('Power Plant Alpha');
+  const [projectName, setProjectName] = useState(user?.project_name || 'Punch Item Management');
 
   const [notifications, setNotifications] = useState<any[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
   const [clearedNotifs, setClearedNotifs] = useState<string[]>(JSON.parse(localStorage.getItem('clearedNotifs') || '[]'));
 
   const [allProjects, setAllProjects] = useState<any[]>([]);
-  const [selectedProjectId, setSelectedProjectId] = useState<string>(localStorage.getItem('superadmin_project_id') || '');
+  const [selectedProjectId, setSelectedProjectId] = useState<string>(
+    userRole === 'SUPERADMIN' ? (localStorage.getItem('superadmin_project_id') || '') : ''
+  );
 
   useEffect(() => {
     const fetchSettingsAndNotifs = async () => {
@@ -46,11 +48,16 @@ const Layout = () => {
           try {
             const projRes = await api.get('/projects');
             setAllProjects(projRes.data);
+            if (selectedProjectId) {
+              const matched = projRes.data.find((p: any) => p.id === selectedProjectId);
+              setProjectName(matched ? matched.name : 'All Projects');
+            } else {
+              setProjectName('All Projects');
+            }
           } catch(e) {}
-        }
-        
-        if (settingsRes.data.PROJECT_NAME) {
-          setProjectName(settingsRes.data.PROJECT_NAME);
+        } else {
+          // Tenant users should see their specific Project Name
+          setProjectName(user?.project_name || settingsRes.data.PROJECT_NAME || 'Punch Item Management');
         }
 
         const allItems = itemsRes.data;
@@ -106,6 +113,8 @@ const Layout = () => {
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('superadmin_project_id');
+    localStorage.removeItem('clearedNotifs');
     navigate('/login');
   };
 
@@ -199,8 +208,15 @@ const Layout = () => {
                 <select 
                   value={selectedProjectId}
                   onChange={(e) => {
-                    setSelectedProjectId(e.target.value);
-                    localStorage.setItem('superadmin_project_id', e.target.value);
+                    const newId = e.target.value;
+                    setSelectedProjectId(newId);
+                    localStorage.setItem('superadmin_project_id', newId);
+                    if (newId) {
+                      const matched = allProjects.find(p => p.id === newId);
+                      setProjectName(matched ? matched.name : 'All Projects');
+                    } else {
+                      setProjectName('All Projects');
+                    }
                     window.dispatchEvent(new Event('projectChange'));
                   }}
                   className="border border-surface-border rounded-md px-3 py-1.5 text-sm bg-white text-primary-dark outline-none focus:border-primary-blue"

@@ -26,7 +26,7 @@ const PunchList = () => {
   const user = userStr ? JSON.parse(userStr) : null;
   const [userRole, setUserRole] = useState<string>(user?.role || '');
   const [packages, setPackages] = useState<any[]>([]);
-  const [projectName, setProjectName] = useState('Power Plant Project');
+  const [projectName, setProjectName] = useState(user?.project_name || 'Punch Item Management');
 
   const getFullUrl = (path?: string) => {
     if (!path) return '';
@@ -55,7 +55,9 @@ const PunchList = () => {
     fetchItems();
     api.get('/settings').then(res => {
       if (res.data.PACKAGES) setPackages(JSON.parse(res.data.PACKAGES));
-      if (res.data.PROJECT_NAME) setProjectName(res.data.PROJECT_NAME);
+      if (!user?.project_name && res.data.PROJECT_NAME) {
+        setProjectName(res.data.PROJECT_NAME);
+      }
     }).catch(err => console.error(err));
 
     const handleProjectChange = () => fetchItems();

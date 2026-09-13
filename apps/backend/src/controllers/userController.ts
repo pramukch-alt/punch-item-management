@@ -14,7 +14,11 @@ if (!fs.existsSync(uploadDir)) {
 
 export const getUsers = async (req: AuthRequest, res: Response) => {
   try {
+    const isSuper = req.user?.role === 'SUPERADMIN';
+    const projectId = req.user?.project_id;
+
     const users = await prisma.user.findMany({
+      where: isSuper ? {} : { project_id: projectId || undefined },
       select: {
         id: true,
         email: true,
@@ -22,6 +26,7 @@ export const getUsers = async (req: AuthRequest, res: Response) => {
         role: true,
         discipline: true,
         signature_image_path: true,
+        project_id: true,
         created_at: true,
       },
       orderBy: { created_at: 'desc' }
@@ -61,7 +66,8 @@ export const createUser = async (req: AuthRequest, res: Response) => {
         name: name || null,
         role: role as Role,
         discipline: discipline || null,
-        signature_image_path
+        signature_image_path,
+        project_id: req.user?.project_id || null
       },
       select: { id: true, email: true, name: true, role: true, discipline: true, signature_image_path: true }
     });
@@ -76,7 +82,13 @@ export const deleteUser = async (req: AuthRequest, res: Response) => {
   const id = req.params.id as string;
   try {
     const userToDelete = await prisma.user.findUnique({ where: { id } });
-    if (req.user?.role === 'SUPERVISOR' && userToDelete?.role === 'ADMIN') {
+    if (!userToDelete) return res.status(404).json({ message: 'User not found' });
+
+    if (req.user?.role !== 'SUPERADMIN' && userToDelete.project_id !== req.user?.project_id) {
+      return res.status(403).json({ message: 'Unauthorized: User belongs to another project' });
+    }
+
+    if (req.user?.role === 'SUPERVISOR' && userToDelete.role === 'ADMIN') {
       return res.status(403).json({ message: 'Supervisor cannot delete ADMIN users' });
     }
     
@@ -95,6 +107,10 @@ export const updateUser = async (req: AuthRequest, res: Response) => {
   try {
     const existingUser = await prisma.user.findUnique({ where: { id } });
     if (!existingUser) return res.status(404).json({ message: 'User not found' });
+
+    if (req.user?.role !== 'SUPERADMIN' && existingUser.project_id !== req.user?.project_id) {
+      return res.status(403).json({ message: 'Unauthorized: User belongs to another project' });
+    }
 
     if (req.user?.role === 'SUPERVISOR' && existingUser.role === 'ADMIN') {
       return res.status(403).json({ message: 'Supervisor cannot edit ADMIN users' });
