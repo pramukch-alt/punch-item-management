@@ -144,9 +144,9 @@ const Layout = () => {
 
       {/* Sidebar - Sliding drawer on mobile */}
       <aside className={`fixed inset-y-0 left-0 z-30 w-[260px] bg-surface-card border-r border-surface-border flex flex-col transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 print:hidden ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="p-5 flex items-center justify-between border-b border-surface-border/50 mb-2">
-          <div className="flex items-center">
-            <img src="/logo.png" alt="PunchPro Logo" className="h-12 w-auto object-contain max-w-[180px]" />
+        <div className="px-5 py-4 flex items-center justify-between border-b border-surface-border/50 mb-2">
+          <div className="flex items-center flex-1">
+            <img src="/logo.png" alt="PunchPro Logo" className="w-auto h-10 md:h-11 max-w-[200px] object-contain" />
           </div>
           <button 
             className="md:hidden p-1 text-surface-textMuted hover:text-primary-dark"
