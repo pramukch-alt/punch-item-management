@@ -28,7 +28,7 @@ const Login = () => {
         {/* Login Card */}
         <div className="bg-surface-card p-8 rounded-lg shadow-md border border-surface-border w-full">
           <div className="flex flex-col items-center justify-center mb-6">
-            <img src="/logo.png" alt="PunchPro Logo" className="h-24 md:h-28 max-w-[280px] w-auto object-contain" />
+            <img src="/PunchPro_Ver2_Login.png" alt="PunchPro Logo" className="w-[200px] h-[40px] md:w-[220px] md:h-[44px] object-contain" />
           </div>
           {error && <div className="bg-red-50 text-red-600 p-3 rounded-md mb-4 text-sm">{error}</div>}
           <form onSubmit={handleLogin} className="space-y-4">
