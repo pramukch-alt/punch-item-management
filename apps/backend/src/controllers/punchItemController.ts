@@ -6,15 +6,21 @@ import { Discipline, Category } from '@prisma/client';
 export const getPunchItems = async (req: AuthRequest, res: Response) => {
   try {
     const user = await prisma.user.findUnique({ where: { id: req.user?.id } });
-    const projectId = user?.project_id;
+    let filterProjectId = user?.project_id;
     
-    // Superadmin doesn't see regular punch items unless we want them to. Let's just return empty or all.
+    // Superadmin can view items of a specific project via query param
     if (user?.role === 'SUPERADMIN') {
-      return res.json([]);
+      const queryProjectId = req.query.project_id as string;
+      if (queryProjectId) {
+        filterProjectId = queryProjectId;
+      } else {
+        // If superadmin doesn't specify project, return all or none. Let's return none to force selection.
+        return res.json([]);
+      }
     }
 
     const items = await prisma.punchItem.findMany({
-      where: projectId ? { project_id: projectId } : {},
+      where: filterProjectId ? { project_id: filterProjectId } : {},
       include: {
         created_by: {
           select: { id: true, email: true, name: true, signature_image_path: true }

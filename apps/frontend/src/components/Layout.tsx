@@ -31,13 +31,23 @@ const Layout = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [clearedNotifs, setClearedNotifs] = useState<string[]>(JSON.parse(localStorage.getItem('clearedNotifs') || '[]'));
 
+  const [allProjects, setAllProjects] = useState<any[]>([]);
+  const [selectedProjectId, setSelectedProjectId] = useState<string>(localStorage.getItem('superadmin_project_id') || '');
+
   useEffect(() => {
     const fetchSettingsAndNotifs = async () => {
       try {
         const [settingsRes, itemsRes] = await Promise.all([
           api.get('/settings'),
-          api.get('/punch-items')
+          api.get(userRole === 'SUPERADMIN' && selectedProjectId ? `/punch-items?project_id=${selectedProjectId}` : '/punch-items')
         ]);
+        
+        if (userRole === 'SUPERADMIN') {
+          try {
+            const projRes = await api.get('/projects');
+            setAllProjects(projRes.data);
+          } catch(e) {}
+        }
         
         if (settingsRes.data.PROJECT_NAME) {
           setProjectName(settingsRes.data.PROJECT_NAME);
@@ -67,7 +77,7 @@ const Layout = () => {
       }
     };
     fetchSettingsAndNotifs();
-  }, [userRole]); // removed clearedNotifs from dependency so it doesn't refetch
+  }, [userRole, selectedProjectId]);
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -182,6 +192,26 @@ const Layout = () => {
             <div className="font-semibold text-base md:text-lg text-primary-dark line-clamp-1">Project: {projectName}</div>
           </div>
           <div className="flex items-center space-x-6 relative">
+            
+            {userRole === 'SUPERADMIN' && (
+              <div className="hidden md:flex items-center gap-2">
+                <span className="text-sm font-medium text-surface-textMuted">View Project:</span>
+                <select 
+                  value={selectedProjectId}
+                  onChange={(e) => {
+                    setSelectedProjectId(e.target.value);
+                    localStorage.setItem('superadmin_project_id', e.target.value);
+                    window.dispatchEvent(new Event('projectChange'));
+                  }}
+                  className="border border-surface-border rounded-md px-3 py-1.5 text-sm bg-white text-primary-dark outline-none focus:border-primary-blue"
+                >
+                  <option value="">-- All Projects (Or select one) --</option>
+                  {allProjects.map(p => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
             
             {/* Notification Button */}
             <div className="relative">

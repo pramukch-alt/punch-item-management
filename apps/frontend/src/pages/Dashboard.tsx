@@ -11,8 +11,13 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const spid = localStorage.getItem('superadmin_project_id');
+        const userStr = localStorage.getItem('user');
+        const isSuper = userStr && JSON.parse(userStr).role === 'SUPERADMIN';
+        const endpoint = isSuper && spid ? `/punch-items?project_id=${spid}` : '/punch-items';
+
         const [itemsRes, settingsRes] = await Promise.all([
-          api.get('/punch-items'),
+          api.get(endpoint),
           api.get('/settings')
         ]);
         setItems(itemsRes.data);
@@ -24,6 +29,10 @@ const Dashboard = () => {
       }
     };
     fetchData();
+
+    const handleProjectChange = () => fetchData();
+    window.addEventListener('projectChange', handleProjectChange);
+    return () => window.removeEventListener('projectChange', handleProjectChange);
   }, []);
 
   const filteredItems = items.filter(item => {

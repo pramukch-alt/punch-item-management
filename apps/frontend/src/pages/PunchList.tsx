@@ -40,7 +40,11 @@ const PunchList = () => {
 
   const fetchItems = async () => {
     try {
-      const response = await api.get('/punch-items');
+      const spid = localStorage.getItem('superadmin_project_id');
+      const userStr = localStorage.getItem('user');
+      const isSuper = userStr && JSON.parse(userStr).role === 'SUPERADMIN';
+      const endpoint = isSuper && spid ? `/punch-items?project_id=${spid}` : '/punch-items';
+      const response = await api.get(endpoint);
       setItems(response.data);
     } catch (error) {
       console.error('Failed to fetch items', error);
@@ -48,15 +52,15 @@ const PunchList = () => {
   };
 
   useEffect(() => {
-    const userStr = localStorage.getItem('user');
-    if (userStr) {
-      setUserRole(JSON.parse(userStr).role);
-    }
     fetchItems();
     api.get('/settings').then(res => {
       if (res.data.PACKAGES) setPackages(JSON.parse(res.data.PACKAGES));
       if (res.data.PROJECT_NAME) setProjectName(res.data.PROJECT_NAME);
     }).catch(err => console.error(err));
+
+    const handleProjectChange = () => fetchItems();
+    window.addEventListener('projectChange', handleProjectChange);
+    return () => window.removeEventListener('projectChange', handleProjectChange);
   }, []);
 
   useEffect(() => {
