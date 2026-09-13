@@ -348,12 +348,12 @@ export default function FieldApp() {
             </div>
 
             {/* Card 3: Data Export */}
-            <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 flex justify-between items-center">
+            <div className="bg-green-50 dark:bg-green-900/10 p-4 rounded-xl border border-green-200 dark:border-green-900/30 flex justify-between items-center">
               <div>
-                <h2 className="text-md font-bold dark:text-white">Data Export</h2>
-                <p className="text-xs text-slate-500">Share {savedItems.length} saved records as CSV</p>
+                <h2 className="text-md font-bold text-green-700 dark:text-green-400">Data Export</h2>
+                <p className="text-xs text-green-600/80 dark:text-green-400/80">Share {savedItems.length} saved records as ZIP</p>
               </div>
-              <button onClick={shareData} className="p-3 bg-blue-100 text-primary-blue rounded-xl hover:bg-blue-200 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 transition">
+              <button onClick={shareData} className="p-3 bg-green-100 text-green-700 rounded-xl hover:bg-green-200 dark:bg-green-900/40 dark:text-green-400 dark:hover:bg-green-900/60 transition shadow-sm">
                 <Share2 size={24} />
               </button>
             </div>
