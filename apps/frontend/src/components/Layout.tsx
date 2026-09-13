@@ -29,7 +29,21 @@ const Layout = () => {
 
   const [notifications, setNotifications] = useState<any[]>([]);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [clearedNotifs, setClearedNotifs] = useState<string[]>(JSON.parse(localStorage.getItem('clearedNotifs') || '[]'));
+  const userId = user?.id || user?.email || 'guest';
+  const storageKey = `clearedNotifs_${userId}`;
+
+  const [clearedNotifs, setClearedNotifs] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem(storageKey);
+      if (saved) return JSON.parse(saved);
+      const oldSaved = localStorage.getItem('clearedNotifs');
+      return oldSaved ? JSON.parse(oldSaved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const getNotifKey = (n: any) => `${n.id}_${n.status}_${n.updated_at ? new Date(n.updated_at).getTime() : ''}`;
 
   const [allProjects, setAllProjects] = useState<any[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string>(
@@ -91,21 +105,21 @@ const Layout = () => {
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
 
-  const unreadCount = notifications.filter(n => !clearedNotifs.includes(n.id + n.status)).length;
+  const unreadCount = notifications.filter(n => !clearedNotifs.includes(getNotifKey(n)) && !clearedNotifs.includes(n.id + n.status)).length;
 
   const handleClearNotifications = () => {
-    const newCleared = [...clearedNotifs, ...notifications.map(n => n.id + n.status)];
+    const newCleared = [...clearedNotifs, ...notifications.map(getNotifKey), ...notifications.map(n => n.id + n.status)];
     const uniqueCleared = Array.from(new Set(newCleared));
     setClearedNotifs(uniqueCleared);
-    localStorage.setItem('clearedNotifs', JSON.stringify(uniqueCleared));
+    localStorage.setItem(storageKey, JSON.stringify(uniqueCleared));
   };
 
   const handleReadNotification = (notif: any) => {
-    const key = notif.id + notif.status;
+    const key = getNotifKey(notif);
     if (!clearedNotifs.includes(key)) {
-      const newCleared = [...clearedNotifs, key];
+      const newCleared = [...clearedNotifs, key, notif.id + notif.status];
       setClearedNotifs(newCleared);
-      localStorage.setItem('clearedNotifs', JSON.stringify(newCleared));
+      localStorage.setItem(storageKey, JSON.stringify(newCleared));
     }
     setShowNotifications(false);
   };
@@ -114,7 +128,6 @@ const Layout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('superadmin_project_id');
-    localStorage.removeItem('clearedNotifs');
     navigate('/login');
   };
 
@@ -262,7 +275,7 @@ const Layout = () => {
                 <div className="max-h-80 overflow-y-auto">
                   {notifications.length > 0 ? (
                     notifications.map(notif => {
-                      const isUnread = !clearedNotifs.includes(notif.id + notif.status);
+                      const isUnread = !clearedNotifs.includes(getNotifKey(notif)) && !clearedNotifs.includes(notif.id + notif.status);
                       return (
                         <Link 
                           key={notif.id} 
