@@ -5,7 +5,16 @@ import { Discipline, Category } from '@prisma/client';
 
 export const getPunchItems = async (req: AuthRequest, res: Response) => {
   try {
+    const user = await prisma.user.findUnique({ where: { id: req.user?.id } });
+    const projectId = user?.project_id;
+    
+    // Superadmin doesn't see regular punch items unless we want them to. Let's just return empty or all.
+    if (user?.role === 'SUPERADMIN') {
+      return res.json([]);
+    }
+
     const items = await prisma.punchItem.findMany({
+      where: projectId ? { project_id: projectId } : {},
       include: {
         created_by: {
           select: { id: true, email: true, name: true, signature_image_path: true }
@@ -56,6 +65,7 @@ export const getPunchItemById = async (req: AuthRequest, res: Response) => {
 export const createPunchItem = async (req: AuthRequest, res: Response) => {
   const { discipline, description, category, kks_tag, package: pkg, system, location } = req.body;
   const userId = req.user?.id;
+  const projectId = req.user?.project_id; // Added by checkPackageLimits middleware
 
   if (!userId) return res.status(401).json({ message: 'Unauthorized' });
 
@@ -68,6 +78,7 @@ export const createPunchItem = async (req: AuthRequest, res: Response) => {
       const lastItem = await tx.punchItem.findFirst({
         where: {
           discipline: discipline as Discipline,
+          project_id: projectId || null,
           running_no: { startsWith: `${discipline}-${yearSuffix}-` }
         },
         orderBy: { running_no: 'desc' }
@@ -106,6 +117,7 @@ export const createPunchItem = async (req: AuthRequest, res: Response) => {
           description,
           status: 'OPEN',
           created_by_id: userId,
+          project_id: projectId || null,
           before_image_path,
           before_image_2_path,
           after_image_path,

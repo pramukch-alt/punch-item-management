@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ListChecks, Upload, Users, Settings, LogOut, Bell, Smartphone, Menu, X, CheckSquare, Database } from 'lucide-react';
+import { LayoutDashboard, ListChecks, Upload, Users, Settings, LogOut, Bell, Smartphone, Menu, X, CheckSquare, Database, ShieldAlert } from 'lucide-react';
 import api from '../services/api';
 
 const Layout = () => {
@@ -104,9 +104,10 @@ const Layout = () => {
     { name: 'System Progress', path: '/system-progress', icon: <CheckSquare size={20} />, roles: ['ADMIN', 'SUPERVISOR', 'CONTRACTOR'] },
     { name: 'Punch List', path: '/punch-list', icon: <ListChecks size={20} />, roles: ['ADMIN', 'SUPERVISOR', 'CONTRACTOR', 'OE', 'OWNER'] },
     { name: 'Database Management', path: '/database-management', icon: <Database size={20} />, roles: ['ADMIN', 'SUPERVISOR', 'CONTRACTOR'] },
-    { name: 'Field App (PWA)', path: '/field-app', icon: <Smartphone size={20} />, roles: ['ADMIN', 'SUPERVISOR', 'CONTRACTOR'] },
+    ...(user?.pwa_enabled ? [{ name: 'Field App (PWA)', path: '/field-app', icon: <Smartphone size={20} />, roles: ['ADMIN', 'SUPERVISOR', 'CONTRACTOR'] }] : []),
     { name: 'User Management', path: '/users', icon: <Users size={20} />, roles: ['ADMIN', 'SUPERVISOR'] },
     { name: 'Settings', path: '/settings', icon: <Settings size={20} />, roles: ['ADMIN'] },
+    { name: 'Superadmin Panel', path: '/superadmin', icon: <ShieldAlert size={20} />, roles: ['SUPERADMIN'] },
   ];
 
   const filteredNavItems = navItems.filter(item => item.roles.includes(userRole));

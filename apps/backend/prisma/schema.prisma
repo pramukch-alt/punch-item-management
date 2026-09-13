@@ -15,6 +15,8 @@ model User {
   role                 Role
   discipline           Discipline?
   signature_image_path String?
+  project_id           String?
+  project              Project?           @relation(fields: [project_id], references: [id])
   created_at           DateTime           @default(now())
   updated_at           DateTime           @updatedAt
   punch_items          PunchItem[]
@@ -23,7 +25,7 @@ model User {
 
 model PunchItem {
   id                String             @id @default(uuid())
-  running_no        String             @unique
+  running_no        String
   discipline        Discipline
   category          Category           @default(C)
   package           String?
@@ -39,10 +41,14 @@ model PunchItem {
   after_image_desc    String?
   after_image_2_path  String?
   created_by_id     String
+  project_id        String?
+  project           Project?           @relation(fields: [project_id], references: [id])
   created_at        DateTime           @default(now())
   updated_at        DateTime           @updatedAt
   created_by        User               @relation(fields: [created_by_id], references: [id])
   history           PunchItemHistory[]
+
+  @@unique([project_id, running_no])
 }
 
 model PunchItemHistory {
@@ -58,6 +64,7 @@ model PunchItemHistory {
 }
 
 enum Role {
+  SUPERADMIN
   ADMIN
   CONTRACTOR
   OE
@@ -102,4 +109,29 @@ enum Action {
 model Setting {
   key   String @id
   value String
+}
+
+model Package {
+  id                String    @id @default(uuid())
+  package_name      String    @unique
+  max_punch_items   Int?      // null = Unlimited
+  pwa_enabled       Boolean   @default(false)
+  report_enabled    Boolean   @default(false)
+  duration_months   Int?
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @updatedAt
+  projects          Project[]
+}
+
+model Project {
+  id             String      @id @default(uuid())
+  name           String
+  package_id     String?
+  package        Package?    @relation(fields: [package_id], references: [id])
+  start_date     DateTime?
+  end_date       DateTime?
+  users          User[]
+  punch_items    PunchItem[]
+  created_at     DateTime    @default(now())
+  updated_at     DateTime    @updatedAt
 }

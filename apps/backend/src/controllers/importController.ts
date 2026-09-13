@@ -29,12 +29,17 @@ export const importExcel = async (req: AuthRequest, res: Response) => {
       await prisma.$transaction(async (tx) => {
         let existing = null;
         if (running_no) {
-          existing = await tx.punchItem.findUnique({ where: { running_no } });
+          existing = await tx.punchItem.findFirst({ 
+            where: { 
+              running_no, 
+              project_id: req.user?.project_id || null 
+            } 
+          });
         }
         
         if (existing) {
           await tx.punchItem.update({
-            where: { running_no },
+            where: { id: existing.id },
             data: { 
               description, 
               discipline: discipline as Discipline,
@@ -56,6 +61,7 @@ export const importExcel = async (req: AuthRequest, res: Response) => {
           const lastItem = await tx.punchItem.findFirst({
             where: {
               discipline: discipline as Discipline,
+              project_id: req.user?.project_id || null,
               running_no: { startsWith: `${discipline}-${year}-` }
             },
             orderBy: { running_no: 'desc' }
@@ -68,11 +74,11 @@ export const importExcel = async (req: AuthRequest, res: Response) => {
           }
 
           const paddedNumber = nextNumber.toString().padStart(4, '0');
-          running_no = `${discipline}-${year}-${paddedNumber}`;
+          const newRunningNo = `${discipline}-${year}-${paddedNumber}`;
 
           const newItem = await tx.punchItem.create({
             data: {
-              running_no,
+              running_no: newRunningNo,
               discipline: discipline as Discipline,
               category: category as any,
               kks_tag: kks_tag || null,
@@ -80,7 +86,8 @@ export const importExcel = async (req: AuthRequest, res: Response) => {
               system: system || null,
               description,
               status: 'OPEN',
-              created_by_id: userId
+              created_by_id: userId,
+              project_id: req.user?.project_id || null,
             }
           });
           
@@ -126,7 +133,12 @@ export const bulkImageUpload = async (req: AuthRequest, res: Response) => {
       : (index === '1' ? 'after_image_path' : 'after_image_2_path');
 
     try {
-      const punchItem = await prisma.punchItem.findUnique({ where: { running_no } });
+      const punchItem = await prisma.punchItem.findFirst({ 
+        where: { 
+          running_no,
+          project_id: req.user?.project_id || null
+        } 
+      });
       if (!punchItem) {
         errors.push(`Punch Item not found for: ${file.originalname}`);
         fs.unlinkSync(file.path);

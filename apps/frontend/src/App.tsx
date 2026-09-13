@@ -9,6 +9,7 @@ import Settings from './pages/Settings';
 import Login from './pages/Login';
 import Layout from './components/Layout';
 import FieldApp from './pages/FieldApp';
+import SuperadminPanel from './pages/SuperadminPanel';
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
           <Route path="database-management" element={<DatabaseManagement />} />
           <Route path="users" element={<UserManagement />} />
           <Route path="settings" element={<Settings />} />
+          <Route path="superadmin" element={<SuperadminPanel />} />
         </Route>
       </Routes>
     </Router>

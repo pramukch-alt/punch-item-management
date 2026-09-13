@@ -22,7 +22,9 @@ const PunchList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const navigate = useNavigate();
 
-  const [userRole, setUserRole] = useState<string>('');
+  const userStr = localStorage.getItem('user');
+  const user = userStr ? JSON.parse(userStr) : null;
+  const [userRole, setUserRole] = useState<string>(user?.role || '');
   const [packages, setPackages] = useState<any[]>([]);
   const [projectName, setProjectName] = useState('Power Plant Project');
 
@@ -130,22 +132,26 @@ const PunchList = () => {
       <div className="flex items-center justify-between print:hidden">
         <h1 className="text-2xl font-bold">Punch List</h1>
         <div className="flex space-x-3">
-          <button 
-            onClick={handleExportExcel}
-            className="flex items-center space-x-2 bg-white border border-surface-border text-green-700 px-4 py-2 rounded-md hover:bg-green-50 transition-colors"
-          >
-            <Upload size={16} className="rotate-180" />
-            <span>Export to Excel</span>
-          </button>
-        {(userRole === 'CONTRACTOR' || userRole === 'ADMIN') && (
-          <>
+          {user?.report_enabled && (
             <button 
-              onClick={() => setIsPrintModalOpen(true)}
-              className="flex items-center space-x-2 bg-white border border-surface-border text-primary-dark px-4 py-2 rounded-md hover:bg-surface-app transition-colors"
+              onClick={handleExportExcel}
+              className="flex items-center space-x-2 bg-white border border-surface-border text-green-700 px-4 py-2 rounded-md hover:bg-green-50 transition-colors"
             >
-              <Printer size={16} />
-              <span>Print Report</span>
+              <Upload size={16} className="rotate-180" />
+              <span>Export to Excel</span>
             </button>
+          )}
+        {(userRole === 'CONTRACTOR' || userRole === 'ADMIN' || userRole === 'SUPERVISOR') && (
+          <>
+            {user?.report_enabled && (
+              <button 
+                onClick={() => setIsPrintModalOpen(true)}
+                className="flex items-center space-x-2 bg-white border border-surface-border text-primary-dark px-4 py-2 rounded-md hover:bg-surface-app transition-colors"
+              >
+                <Printer size={16} />
+                <span>Print Report</span>
+              </button>
+            )}
             <button 
               onClick={() => setIsUploadModalOpen(true)}
               className="flex items-center space-x-2 bg-white border border-surface-border text-primary-dark px-4 py-2 rounded-md hover:bg-surface-app transition-colors"

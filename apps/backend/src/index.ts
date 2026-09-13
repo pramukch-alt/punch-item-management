@@ -28,6 +28,8 @@ import authRoutes from './routes/auth';
 import userRoutes from './routes/users';
 import punchItemRoutes from './routes/punch-items';
 import settingsRoutes from './routes/settings';
+import packageRoutes from './routes/packages';
+import projectRoutes from './routes/projects';
 import path from 'path';
 
 // Serve static uploads
@@ -37,6 +39,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/punch-items', punchItemRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/packages', packageRoutes);
+app.use('/api/projects', projectRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
