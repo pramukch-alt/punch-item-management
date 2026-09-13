@@ -17,8 +17,8 @@ router.post('/test-email', authenticateToken, requireRole(['ADMIN']), testEmail)
 // Progress route for Contractor and Admin
 router.put('/system-progress', authenticateToken, requireRole(['ADMIN', 'CONTRACTOR']), updateSystemProgress);
 
-// Factory Reset
+// Factory Reset (Superadmin only per Authorization Configuration.xlsx)
 import { factoryReset } from '../controllers/settingsController';
-router.delete('/factory-reset', authenticateToken, requireRole(['ADMIN']), factoryReset);
+router.delete('/factory-reset', authenticateToken, requireRole(['SUPERADMIN']), factoryReset);
 
 export default router;

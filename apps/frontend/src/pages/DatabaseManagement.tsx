@@ -12,10 +12,11 @@ const DatabaseManagement = () => {
   const [confirmText, setConfirmText] = useState('');
   const [isResetting, setIsResetting] = useState(false);
   
-  // Retrieve user role from local storage to check if ADMIN
+  // Retrieve user role to check permissions according to Authorization Configuration.xlsx
   const userStr = localStorage.getItem('user');
   const user = userStr ? JSON.parse(userStr) : null;
-  const isAdmin = user?.role === 'ADMIN';
+  const isSuperAdmin = user?.role === 'SUPERADMIN';
+  const canBackup = user?.role === 'ADMIN' || user?.role === 'SUPERADMIN';
 
   const handleBackup = async () => {
     try {
@@ -85,15 +86,19 @@ const DatabaseManagement = () => {
           >
             Bulk Upload Punch Items
           </button>
-          <button
-            onClick={() => setActiveTab('backup')}
-            className={`px-6 py-4 text-sm font-semibold whitespace-nowrap transition-colors ${
-              activeTab === 'backup' ? 'bg-white text-primary-blue border-b-2 border-primary-blue' : 'text-surface-textMuted hover:text-primary-dark hover:bg-white/50'
-            }`}
-          >
-            Database Backup
-          </button>
-          {isAdmin && (
+          
+          {canBackup && (
+            <button
+              onClick={() => setActiveTab('backup')}
+              className={`px-6 py-4 text-sm font-semibold whitespace-nowrap transition-colors ${
+                activeTab === 'backup' ? 'bg-white text-primary-blue border-b-2 border-primary-blue' : 'text-surface-textMuted hover:text-primary-dark hover:bg-white/50'
+              }`}
+            >
+              Database Backup
+            </button>
+          )}
+
+          {isSuperAdmin && (
             <button
               onClick={() => setActiveTab('reset')}
               className={`px-6 py-4 text-sm font-semibold whitespace-nowrap transition-colors ${
@@ -175,7 +180,7 @@ const DatabaseManagement = () => {
           )}
 
           {/* Reset Tab */}
-          {activeTab === 'reset' && isAdmin && (
+          {activeTab === 'reset' && isSuperAdmin && (
             <div className="max-w-2xl space-y-6">
               <div className="flex items-start space-x-4">
                 <div className="p-3 bg-red-100 text-red-600 rounded-lg shrink-0">
