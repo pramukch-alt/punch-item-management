@@ -27,9 +27,8 @@ const Login = () => {
       <div className="w-full max-w-md space-y-4">
         {/* Login Card */}
         <div className="bg-surface-card p-8 rounded-lg shadow-md border border-surface-border w-full">
-          <div className="flex flex-col items-center justify-center mb-6 space-y-3">
-            <img src="/logo.png" alt="PIM Logo" className="h-16 w-auto object-contain" />
-            <h1 className="text-2xl font-bold text-center text-primary-dark">Punch Item Management</h1>
+          <div className="flex flex-col items-center justify-center mb-6">
+            <img src="/logo.png" alt="PunchPro Logo" className="h-24 md:h-28 max-w-[280px] w-auto object-contain" />
           </div>
           {error && <div className="bg-red-50 text-red-600 p-3 rounded-md mb-4 text-sm">{error}</div>}
           <form onSubmit={handleLogin} className="space-y-4">
