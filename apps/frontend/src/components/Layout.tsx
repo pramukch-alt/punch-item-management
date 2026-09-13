@@ -197,8 +197,6 @@ const Layout = () => {
             >
               <Menu size={24} />
             </button>
-            <img src="/PunchPro_titlebar.png" alt="PunchPro" className="h-8 md:h-9 w-auto object-contain" />
-            <div className="h-5 w-[1px] bg-surface-border hidden sm:block"></div>
             <div className="font-semibold text-base md:text-lg text-primary-dark line-clamp-1">Project: {projectName}</div>
           </div>
           <div className="flex items-center space-x-6 relative">

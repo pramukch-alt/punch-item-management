@@ -9,7 +9,7 @@ export default defineConfig({
     react(),
     VitePWA({ 
       registerType: 'autoUpdate',
-      includeAssets: ['logo.png'],
+      includeAssets: ['logo.png', 'PunchPro_titlebar.png', 'PunchPro_SideBar.png'],
       manifest: {
         name: 'PunchPro Field App',
         short_name: 'PunchPro',
