@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { performCleanLogout } from '../utils/auth';
 
 const api = axios.create({
   baseURL: '/api',
@@ -18,17 +19,25 @@ api.interceptors.request.use(
   }
 );
 
-// Add a response interceptor to handle 401s (unauthorized)
+// Add a response interceptor to handle authentication & token expiry errors
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response && error.response.status === 401) {
-      // Clear token and redirect to login if unauthorized, unless it's the login endpoint itself
+    if (error.response) {
+      const status = error.response.status;
       const originalRequestUrl = error.config?.url;
-      if (originalRequestUrl !== '/auth/login') {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        window.location.href = '/#/login';
+      const isAuthEndpoint = originalRequestUrl === '/auth/login' || originalRequestUrl === '/auth/logout';
+
+      // Catch 401 Unauthorized or 403 Forbidden with expired token code
+      const isTokenExpired = 
+        status === 401 || 
+        (status === 403 && error.response.data?.code === 'TOKEN_EXPIRED');
+
+      if (isTokenExpired && !isAuthEndpoint) {
+        performCleanLogout({
+          sessionExpired: true,
+          message: error.response.data?.message || 'Your session has expired. Please log in again.',
+        });
       }
     }
     return Promise.reject(error);

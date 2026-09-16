@@ -18,7 +18,7 @@ export const authenticateToken = (req: AuthRequest, res: Response, next: NextFun
   if (token == null) return res.status(401).json({ message: 'No token provided' });
 
   jwt.verify(token, JWT_SECRET, (err: any, user: any) => {
-    if (err) return res.status(403).json({ message: 'Invalid token' });
+    if (err) return res.status(401).json({ message: 'Token expired or invalid', code: 'TOKEN_EXPIRED' });
     req.user = user;
     next();
   });

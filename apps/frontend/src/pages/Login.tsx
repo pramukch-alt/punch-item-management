@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Smartphone } from 'lucide-react';
 import api from '../services/api';
@@ -8,10 +8,24 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
+
+  useEffect(() => {
+    // Check if redirected due to session expiration
+    const savedNotice = sessionStorage.getItem('login_notice');
+    if (savedNotice) {
+      setNotice(savedNotice);
+      sessionStorage.removeItem('login_notice');
+    }
+    // Clean up residual auth tokens on login mount to prevent stale session state
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setNotice('');
     try {
       const response = await api.post('/auth/login', { email, password });
       localStorage.setItem('token', response.data.token);
@@ -30,7 +44,8 @@ const Login = () => {
           <div className="flex flex-col items-center justify-center mb-6">
             <img src="/PunchPro_Ver2_Login.png" alt="PunchPro Logo" className="w-[200px] h-[40px] md:w-[220px] md:h-[44px] object-contain" />
           </div>
-          {error && <div className="bg-red-50 text-red-600 p-3 rounded-md mb-4 text-sm">{error}</div>}
+          {notice && <div className="bg-amber-50 text-amber-800 border border-amber-200 p-3 rounded-md mb-4 text-sm font-medium">{notice}</div>}
+          {error && <div className="bg-red-50 text-red-600 border border-red-200 p-3 rounded-md mb-4 text-sm font-medium">{error}</div>}
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-surface-textMuted mb-1">Email</label>

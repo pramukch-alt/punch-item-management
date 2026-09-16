@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, ListChecks, Upload, Users, Settings, LogOut, Bell, Smartphone, Menu, X, CheckSquare, Database, ShieldAlert } from 'lucide-react';
 import api from '../services/api';
+import { performCleanLogout } from '../utils/auth';
 
 const Layout = () => {
   const location = useLocation();
@@ -125,10 +126,7 @@ const Layout = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('superadmin_project_id');
-    navigate('/login');
+    performCleanLogout();
   };
 
   const navItems = [
