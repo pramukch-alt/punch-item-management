@@ -223,7 +223,7 @@ const DatabaseManagement = () => {
                       <option value="ALL">⚠️ ALL PROJECTS (Global Reset)</option>
                       {projects.map((p) => (
                         <option key={p.id} value={p.id}>
-                          📁 Project: {p.name}
+                          📁 {p.name} ({p.storage_formatted || '0 B'} • {p._count?.punch_items || 0} items)
                         </option>
                       ))}
                     </select>

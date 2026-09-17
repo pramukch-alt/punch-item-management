@@ -3,12 +3,26 @@ import bcrypt from 'bcryptjs';
 import { authenticateToken, requireRole } from '../middleware/auth';
 import prisma from '../utils/prisma';
 
+import fs from 'fs';
+import path from 'path';
+
 const router = Router();
 router.use(authenticateToken, requireRole(['SUPERADMIN']));
 
+const uploadsDir = path.join(__dirname, '../../uploads/punch-items');
+const sigsDir = path.join(__dirname, '../../uploads/signatures');
+
+const formatBytes = (bytes: number) => {
+  if (bytes === 0) return '0 B';
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+};
+
 router.get('/', async (req, res) => {
   try {
-    const projects = await prisma.project.findMany({
+    const rawProjects = await prisma.project.findMany({
       include: {
         package: true,
         users: {
@@ -21,7 +35,67 @@ router.get('/', async (req, res) => {
       },
       orderBy: { created_at: 'desc' }
     });
-    res.json(projects);
+
+    const projectsWithStorage = await Promise.all(
+      rawProjects.map(async (project) => {
+        const historyCount = await prisma.punchItemHistory.count({
+          where: { punch_item: { project_id: project.id } }
+        });
+
+        const punchItems = await prisma.punchItem.findMany({
+          where: { project_id: project.id },
+          select: {
+            before_image_path: true,
+            before_image_2_path: true,
+            after_image_path: true,
+            after_image_2_path: true
+          }
+        });
+
+        let totalFileBytes = 0;
+        punchItems.forEach(item => {
+          const imgPaths = [
+            item.before_image_path,
+            item.before_image_2_path,
+            item.after_image_path,
+            item.after_image_2_path
+          ];
+          imgPaths.forEach(p => {
+            if (p) {
+              const filename = path.basename(p);
+              const fullPath = path.join(uploadsDir, filename);
+              if (fs.existsSync(fullPath)) {
+                try { totalFileBytes += fs.statSync(fullPath).size; } catch (e) {}
+              }
+            }
+          });
+        });
+
+        const projectUsers = await prisma.user.findMany({
+          where: { project_id: project.id },
+          select: { signature_image_path: true }
+        });
+
+        projectUsers.forEach(u => {
+          if (u.signature_image_path) {
+            const filename = path.basename(u.signature_image_path);
+            const fullPath = path.join(sigsDir, filename);
+            if (fs.existsSync(fullPath)) {
+              try { totalFileBytes += fs.statSync(fullPath).size; } catch (e) {}
+            }
+          }
+        });
+
+        return {
+          ...project,
+          history_count: historyCount,
+          storage_bytes: totalFileBytes,
+          storage_formatted: formatBytes(totalFileBytes)
+        };
+      })
+    );
+
+    res.json(projectsWithStorage);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching projects', error });
   }

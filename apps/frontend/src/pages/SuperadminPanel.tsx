@@ -42,6 +42,9 @@ interface ProjectItem {
   status: 'ACTIVE' | 'SUSPENDED' | 'EXPIRED';
   users?: Array<{ id: string; email: string; name: string }>;
   _count?: { punch_items: number; users: number };
+  history_count?: number;
+  storage_bytes?: number;
+  storage_formatted?: string;
   created_at: string;
 }
 
@@ -435,9 +438,12 @@ const SuperadminPanel: React.FC = () => {
                             {getStatusBadge(proj.status, proj.end_date)}
                           </td>
 
-                          {/* Stats */}
+                          {/* Storage & Usage Stats */}
                           <td className="px-6 py-4 text-center text-xs text-surface-textMuted">
-                            <div><span className="font-semibold text-primary-dark">{proj._count?.punch_items ?? 0}</span> items</div>
+                            <div className="font-bold text-purple-700 bg-purple-50 border border-purple-200 px-2.5 py-0.5 rounded-md inline-block mb-1 shadow-xs">
+                              💾 {proj.storage_formatted || '0 B'}
+                            </div>
+                            <div><span className="font-semibold text-primary-dark">{proj._count?.punch_items ?? 0}</span> items ({proj.history_count ?? 0} logs)</div>
                             <div><span className="font-semibold text-primary-dark">{proj._count?.users ?? 0}</span> users</div>
                           </td>
 
