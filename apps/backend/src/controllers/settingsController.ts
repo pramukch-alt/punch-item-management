@@ -68,27 +68,84 @@ import path from 'path';
 
 export const factoryReset = async (req: AuthRequest, res: Response) => {
   try {
+    const isSuper = req.user?.role === 'SUPERADMIN';
+    if (!isSuper) {
+      return res.status(403).json({ message: 'Only Superadmin can perform factory reset' });
+    }
+
+    const { project_id } = req.body || {};
+
+    let targetProjectName = 'ALL PROJECTS';
+    let whereClause: any = {};
+
+    if (project_id && project_id !== 'ALL') {
+      const proj = await prisma.project.findUnique({ where: { id: project_id } });
+      if (!proj) {
+        return res.status(404).json({ message: 'Target project not found' });
+      }
+      whereClause = { project_id };
+      targetProjectName = `Project "${proj.name}"`;
+    }
+
+    // Find items to delete to clean up specific images
+    const itemsToDelete = await prisma.punchItem.findMany({
+      where: whereClause,
+      select: { 
+        id: true, 
+        before_image_path: true, 
+        before_image_2_path: true, 
+        after_image_path: true, 
+        after_image_2_path: true 
+      }
+    });
+
+    const itemIds = itemsToDelete.map(i => i.id);
+
     // 1. Delete DB Records
     await prisma.$transaction([
-      prisma.punchItemHistory.deleteMany({}),
-      prisma.punchItem.deleteMany({}),
-      prisma.setting.deleteMany({
-        where: { key: 'SYSTEM_PROGRESS' }
-      })
+      prisma.punchItemHistory.deleteMany({
+        where: { punch_item_id: { in: itemIds } }
+      }),
+      prisma.punchItem.deleteMany({
+        where: whereClause
+      }),
+      ...(project_id && project_id !== 'ALL' ? [] : [
+        prisma.setting.deleteMany({
+          where: { key: 'SYSTEM_PROGRESS' }
+        })
+      ])
     ]);
 
     // 2. Delete Uploaded Images
     const uploadsDir = path.join(__dirname, '../../uploads/punch-items');
     if (fs.existsSync(uploadsDir)) {
-      const files = fs.readdirSync(uploadsDir);
-      for (const file of files) {
-        if (file !== '.gitkeep' && file !== '.placeholder') {
-          fs.unlinkSync(path.join(uploadsDir, file));
+      if (!project_id || project_id === 'ALL') {
+        const files = fs.readdirSync(uploadsDir);
+        for (const file of files) {
+          if (file !== '.gitkeep' && file !== '.placeholder') {
+            try { fs.unlinkSync(path.join(uploadsDir, file)); } catch (e) {}
+          }
         }
+      } else {
+        const imagePaths: string[] = [];
+        itemsToDelete.forEach(item => {
+          if (item.before_image_path) imagePaths.push(item.before_image_path);
+          if (item.before_image_2_path) imagePaths.push(item.before_image_2_path);
+          if (item.after_image_path) imagePaths.push(item.after_image_path);
+          if (item.after_image_2_path) imagePaths.push(item.after_image_2_path);
+        });
+
+        imagePaths.forEach(imgPath => {
+          const filename = path.basename(imgPath);
+          const fullPath = path.join(uploadsDir, filename);
+          if (fs.existsSync(fullPath)) {
+            try { fs.unlinkSync(fullPath); } catch (e) {}
+          }
+        });
       }
     }
 
-    res.json({ message: 'Factory reset completed successfully. All punch items and images have been cleared.' });
+    res.json({ message: `Factory reset completed successfully for ${targetProjectName}.` });
   } catch (error) {
     console.error('Factory Reset Error:', error);
     res.status(500).json({ message: 'Failed to perform factory reset', error });

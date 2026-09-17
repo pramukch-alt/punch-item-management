@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Download, Upload, AlertTriangle, Database } from 'lucide-react';
 import UploadExcelModal from '../components/UploadExcelModal';
 import UploadImagesModal from '../components/UploadImagesModal';
 import api from '../services/api';
-import { getStoredUser } from '../utils/auth';
+import { getStoredUser, getStoredSuperadminProjectId } from '../utils/auth';
 
 const DatabaseManagement = () => {
   const [activeTab, setActiveTab] = useState('upload');
@@ -17,6 +17,16 @@ const DatabaseManagement = () => {
   const user = getStoredUser();
   const isSuperAdmin = user?.role === 'SUPERADMIN';
   const canBackup = user?.role === 'ADMIN' || user?.role === 'SUPERADMIN';
+  const superadminProjectId = getStoredSuperadminProjectId();
+
+  const [projects, setProjects] = useState<any[]>([]);
+  const [selectedResetProject, setSelectedResetProject] = useState<string>(superadminProjectId || 'ALL');
+
+  useEffect(() => {
+    if (isSuperAdmin) {
+      api.get('/projects').then(res => setProjects(res.data)).catch(console.error);
+    }
+  }, [isSuperAdmin]);
 
   const handleBackup = async () => {
     try {
@@ -53,11 +63,14 @@ const DatabaseManagement = () => {
   };
 
   const handleFactoryReset = async () => {
-    if (confirmText !== 'CONFIRM RESET') return;
+    const requiredText = selectedResetProject === 'ALL' ? 'CONFIRM RESET ALL' : 'CONFIRM RESET';
+    if (confirmText !== requiredText) return;
     
     setIsResetting(true);
     try {
-      const res = await api.delete('/settings/factory-reset');
+      const res = await api.delete('/settings/factory-reset', {
+        data: { project_id: selectedResetProject }
+      });
       alert(res.data.message);
       setConfirmText('');
     } catch (err: any) {
@@ -190,16 +203,43 @@ const DatabaseManagement = () => {
                   <div>
                     <h2 className="text-lg font-bold text-red-600">Danger Zone: Factory Reset</h2>
                     <p className="text-surface-textMuted mt-1">
-                      This action is irreversible. It will wipe out all transactional data to prepare for production.
+                      This action is irreversible. It will wipe out transactional data to prepare for production.
                     </p>
                   </div>
                   
+                  {/* Target Scope Selection Card */}
+                  <div className="bg-gray-50 border border-gray-200 rounded-md p-4 space-y-2">
+                    <label className="block text-sm font-semibold text-primary-dark">
+                      🎯 Selected Target Scope for Factory Reset:
+                    </label>
+                    <select
+                      value={selectedResetProject}
+                      onChange={(e) => {
+                        setSelectedResetProject(e.target.value);
+                        setConfirmText('');
+                      }}
+                      className="w-full max-w-sm px-3 py-2 border border-gray-300 rounded-md text-sm font-medium bg-white focus:outline-none focus:border-primary-blue"
+                    >
+                      <option value="ALL">⚠️ ALL PROJECTS (Global Reset)</option>
+                      {projects.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          📁 Project: {p.name}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-xs text-surface-textMuted">
+                      {selectedResetProject === 'ALL'
+                        ? 'Warning: This will erase transactional data across ALL projects in the entire system.'
+                        : `Scope limited to project "${projects.find(p => p.id === selectedResetProject)?.name || selectedResetProject}". Other projects will remain untouched.`}
+                    </p>
+                  </div>
+
                   <div className="bg-red-50 p-4 rounded-md border border-red-200">
                     <h3 className="font-semibold text-red-800 text-sm mb-2">The following data WILL BE DELETED:</h3>
                     <ul className="list-disc list-inside text-sm text-red-700 space-y-1">
-                      <li>All Punch Items (including image files)</li>
-                      <li>All Punch Item History Logs</li>
-                      <li>System Progress (Walkdown Completion)</li>
+                      <li>Punch Items & Image Attachments ({selectedResetProject === 'ALL' ? 'All Projects' : `Project: ${projects.find(p => p.id === selectedResetProject)?.name || selectedResetProject}`})</li>
+                      <li>Punch Item History Logs</li>
+                      {selectedResetProject === 'ALL' && <li>System Progress (Walkdown Completion)</li>}
                     </ul>
                     
                     <h3 className="font-semibold text-green-800 text-sm mt-4 mb-2">The following data WILL BE KEPT:</h3>
@@ -212,24 +252,30 @@ const DatabaseManagement = () => {
 
                   <div className="pt-2">
                     <label className="block text-sm font-medium text-surface-textMuted mb-2">
-                      To confirm, type <span className="font-mono bg-gray-100 px-1 rounded text-red-600 font-bold">CONFIRM RESET</span> below:
+                      To confirm, type <span className="font-mono bg-gray-100 px-1 rounded text-red-600 font-bold">{selectedResetProject === 'ALL' ? 'CONFIRM RESET ALL' : 'CONFIRM RESET'}</span> below:
                     </label>
                     <input 
                       type="text" 
                       value={confirmText}
                       onChange={(e) => setConfirmText(e.target.value)}
-                      placeholder="CONFIRM RESET"
+                      placeholder={selectedResetProject === 'ALL' ? 'CONFIRM RESET ALL' : 'CONFIRM RESET'}
                       className="w-full max-w-sm border-red-300 border rounded-md px-3 py-2 text-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-white"
                     />
                   </div>
 
                   <button 
                     onClick={handleFactoryReset}
-                    disabled={confirmText !== 'CONFIRM RESET' || isResetting}
+                    disabled={confirmText !== (selectedResetProject === 'ALL' ? 'CONFIRM RESET ALL' : 'CONFIRM RESET') || isResetting}
                     className="w-full max-w-sm bg-red-600 text-white font-bold py-3 rounded-md hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
                   >
                     <AlertTriangle size={18} />
-                    <span>{isResetting ? 'Wiping Database...' : 'Erase All Transactional Data'}</span>
+                    <span>
+                      {isResetting 
+                        ? 'Wiping Database...' 
+                        : selectedResetProject === 'ALL' 
+                          ? 'Erase ALL Data Across ALL Projects' 
+                          : `Erase Data for "${projects.find(p => p.id === selectedResetProject)?.name || 'Selected Project'}"`}
+                    </span>
                   </button>
                 </div>
               </div>
