@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, ListChecks, Upload, Users, Settings, LogOut, Bell, Smartphone, Menu, X, CheckSquare, Database, ShieldAlert } from 'lucide-react';
+import { LayoutDashboard, ListChecks, Upload, Users, Settings, LogOut, Bell, Smartphone, Menu, X, CheckSquare, Database, ShieldAlert, Activity } from 'lucide-react';
 import api from '../services/api';
 import { performCleanLogout, getStoredUser, getStoredToken, getStoredSuperadminProjectId } from '../utils/auth';
 
@@ -138,6 +138,7 @@ const Layout = () => {
 
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} />, roles: ['ADMIN', 'SUPERVISOR', 'CONTRACTOR', 'OE', 'OWNER'] },
+    { name: 'STATS Monitoring', path: '/stats', icon: <Activity size={20} />, roles: ['SUPERADMIN', 'ADMIN'] },
     { name: 'System Progress', path: '/system-progress', icon: <CheckSquare size={20} />, roles: ['ADMIN', 'SUPERVISOR', 'CONTRACTOR'] },
     { name: 'Punch List', path: '/punch-list', icon: <ListChecks size={20} />, roles: ['ADMIN', 'SUPERVISOR', 'CONTRACTOR', 'OE', 'OWNER'] },
     { name: 'Database Management', path: '/database-management', icon: <Database size={20} />, roles: ['SUPERADMIN', 'ADMIN', 'SUPERVISOR', 'CONTRACTOR'] },

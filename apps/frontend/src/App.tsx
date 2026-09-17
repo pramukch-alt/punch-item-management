@@ -10,6 +10,7 @@ import Login from './pages/Login';
 import Layout from './components/Layout';
 import FieldApp from './pages/FieldApp';
 import SuperadminPanel from './pages/SuperadminPanel';
+import StatsMonitoring from './pages/StatsMonitoring';
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
           <Route path="system-progress" element={<SystemProgress />} />
           <Route path="punch-list" element={<PunchList />} />
           <Route path="punch-list/:id" element={<ItemDetails />} />
+          <Route path="stats" element={<StatsMonitoring />} />
           <Route path="database-management" element={<DatabaseManagement />} />
           <Route path="users" element={<UserManagement />} />
           <Route path="settings" element={<Settings />} />

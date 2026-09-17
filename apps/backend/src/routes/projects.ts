@@ -1,13 +1,12 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
-import { authenticateToken, requireRole } from '../middleware/auth';
+import { authenticateToken, requireRole, AuthRequest } from '../middleware/auth';
 import prisma from '../utils/prisma';
 
 import fs from 'fs';
 import path from 'path';
 
 const router = Router();
-router.use(authenticateToken, requireRole(['SUPERADMIN']));
 
 const uploadsDir = path.join(__dirname, '../../uploads/punch-items');
 const sigsDir = path.join(__dirname, '../../uploads/signatures');
@@ -20,9 +19,17 @@ const formatBytes = (bytes: number) => {
   return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
 };
 
-router.get('/', async (req, res) => {
+router.get('/', authenticateToken, requireRole(['SUPERADMIN', 'ADMIN']), async (req: AuthRequest, res: Response) => {
   try {
+    const isSuper = req.user?.role === 'SUPERADMIN';
+    const userProjectId = req.user?.project_id;
+
+    const whereCondition = isSuper 
+      ? {} 
+      : { id: userProjectId || 'NONE' };
+
     const rawProjects = await prisma.project.findMany({
+      where: whereCondition,
       include: {
         package: true,
         users: {
@@ -101,7 +108,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', authenticateToken, requireRole(['SUPERADMIN']), async (req, res) => {
   const {
     name,
     package_id,
@@ -182,7 +189,8 @@ router.post('/', async (req, res) => {
   }
 });
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', authenticateToken, requireRole(['SUPERADMIN']), async (req: Request, res: Response) => {
+  const targetProjectId = req.params.id as string;
   const {
     name,
     package_id,
@@ -209,7 +217,7 @@ router.put('/:id', async (req, res) => {
     }
 
     const project = await prisma.project.update({
-      where: { id: req.params.id },
+      where: { id: targetProjectId },
       data: {
         ...(name !== undefined && { name: name.trim() }),
         ...(package_id !== undefined && { package_id: package_id || null }),
@@ -229,7 +237,7 @@ router.put('/:id', async (req, res) => {
     if (admin_password && admin_password.trim()) {
       const password_hash = await bcrypt.hash(admin_password.trim(), 10);
       const existingAdmin = await prisma.user.findFirst({
-        where: { project_id: req.params.id, role: 'ADMIN' }
+        where: { project_id: targetProjectId, role: 'ADMIN' }
       });
 
       if (existingAdmin) {
@@ -260,19 +268,20 @@ router.put('/:id', async (req, res) => {
   }
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authenticateToken, requireRole(['SUPERADMIN']), async (req: Request, res: Response) => {
+  const targetProjectId = req.params.id as string;
   try {
     // Delete relations or check if any
     await prisma.punchItemHistory.deleteMany({
-      where: { punch_item: { project_id: req.params.id } }
+      where: { punch_item: { project_id: targetProjectId } }
     });
     await prisma.punchItem.deleteMany({
-      where: { project_id: req.params.id }
+      where: { project_id: targetProjectId }
     });
     await prisma.user.deleteMany({
-      where: { project_id: req.params.id }
+      where: { project_id: targetProjectId }
     });
-    await prisma.project.delete({ where: { id: req.params.id } });
+    await prisma.project.delete({ where: { id: targetProjectId } });
     res.json({ message: 'Project and all associated data deleted' });
   } catch (error) {
     res.status(500).json({ message: 'Error deleting project', error });
