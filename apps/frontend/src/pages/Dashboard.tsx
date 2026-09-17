@@ -1,19 +1,20 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
+import { getStoredUser, getStoredSuperadminProjectId } from '../utils/auth';
 
 const Dashboard = () => {
   const [items, setItems] = useState<any[]>([]);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
 
-  const [systemProgress, setSystemProgress] = useState<any>({});
+  const [systemProgress, setSystemProgress] = useState<Record<string, any>>({});
   
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const spid = localStorage.getItem('superadmin_project_id');
-        const userStr = localStorage.getItem('user');
-        const isSuper = userStr && JSON.parse(userStr).role === 'SUPERADMIN';
+        const spid = getStoredSuperadminProjectId();
+        const user = getStoredUser();
+        const isSuper = user?.role === 'SUPERADMIN';
         const endpoint = isSuper && spid ? `/punch-items?project_id=${spid}` : '/punch-items';
 
         const [itemsRes, settingsRes] = await Promise.all([

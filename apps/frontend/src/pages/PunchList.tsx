@@ -5,6 +5,7 @@ import * as XLSX from 'xlsx';
 import CreateItemModal from '../components/CreateItemModal';
 import UploadExcelModal from '../components/UploadExcelModal';
 import api from '../services/api';
+import { getStoredUser, getStoredSuperadminProjectId } from '../utils/auth';
 
 const PunchList = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -22,8 +23,7 @@ const PunchList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const navigate = useNavigate();
 
-  const userStr = localStorage.getItem('user');
-  const user = userStr ? JSON.parse(userStr) : null;
+  const user = getStoredUser();
   const [userRole, setUserRole] = useState<string>(user?.role || '');
   const [packages, setPackages] = useState<any[]>([]);
   const [projectName, setProjectName] = useState(user?.project_name || 'PunchPro');
@@ -40,9 +40,9 @@ const PunchList = () => {
 
   const fetchItems = async () => {
     try {
-      const spid = localStorage.getItem('superadmin_project_id');
-      const userStr = localStorage.getItem('user');
-      const isSuper = userStr && JSON.parse(userStr).role === 'SUPERADMIN';
+      const spid = getStoredSuperadminProjectId();
+      const currentUser = getStoredUser();
+      const isSuper = currentUser?.role === 'SUPERADMIN';
       const endpoint = isSuper && spid ? `/punch-items?project_id=${spid}` : '/punch-items';
       const response = await api.get(endpoint);
       setItems(response.data);

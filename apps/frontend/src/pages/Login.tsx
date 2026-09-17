@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Smartphone } from 'lucide-react';
 import api from '../services/api';
+import { setAuthSession } from '../utils/auth';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -28,8 +29,7 @@ const Login = () => {
     setNotice('');
     try {
       const response = await api.post('/auth/login', { email, password });
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+      setAuthSession(response.data.token, response.data.user);
       navigate('/dashboard');
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed');

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, Trash2, Pencil } from 'lucide-react';
 import api from '../services/api';
+import { getStoredUser } from '../utils/auth';
 import Modal from '../components/Modal';
 
 const UserManagement = () => {
@@ -17,8 +18,7 @@ const UserManagement = () => {
   const [loading, setLoading] = useState(false);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
 
-  const currentUserStr = localStorage.getItem('user');
-  const currentUser = currentUserStr ? JSON.parse(currentUserStr) : null;
+  const currentUser = getStoredUser();
   const isSupervisor = currentUser?.role === 'SUPERVISOR';
   const isAdmin = currentUser?.role === 'ADMIN';
 

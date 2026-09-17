@@ -2,17 +2,24 @@ import { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, ListChecks, Upload, Users, Settings, LogOut, Bell, Smartphone, Menu, X, CheckSquare, Database, ShieldAlert } from 'lucide-react';
 import api from '../services/api';
-import { performCleanLogout } from '../utils/auth';
+import { performCleanLogout, getStoredUser, getStoredToken, getStoredSuperadminProjectId } from '../utils/auth';
 
 const Layout = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const userStr = localStorage.getItem('user');
-  const user = userStr ? JSON.parse(userStr) : null;
+  const user = getStoredUser();
+  const token = getStoredToken();
   const userRole = user?.role || '';
   
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Auth Guard: If no valid token or user session exists, perform clean redirect to /login
+  useEffect(() => {
+    if (!token || !user) {
+      performCleanLogout();
+    }
+  }, [token, user]);
   
   let initials = 'U';
   if (user?.name) {
@@ -48,7 +55,7 @@ const Layout = () => {
 
   const [allProjects, setAllProjects] = useState<any[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string>(
-    userRole === 'SUPERADMIN' ? (localStorage.getItem('superadmin_project_id') || '') : ''
+    userRole === 'SUPERADMIN' ? getStoredSuperadminProjectId() : ''
   );
 
   useEffect(() => {
@@ -220,6 +227,7 @@ const Layout = () => {
                   onChange={(e) => {
                     const newId = e.target.value;
                     setSelectedProjectId(newId);
+                    sessionStorage.setItem('superadmin_project_id', newId);
                     localStorage.setItem('superadmin_project_id', newId);
                     if (newId) {
                       const matched = allProjects.find(p => p.id === newId);

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Modal from './Modal';
 import { AlertCircle } from 'lucide-react';
 import api from '../services/api';
+import { getStoredUser } from '../utils/auth';
 
 interface CreateItemModalProps {
   isOpen: boolean;
@@ -24,8 +25,7 @@ const CreateItemModal: React.FC<CreateItemModalProps> = ({ isOpen, onClose, onSu
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const userStr = localStorage.getItem('user');
-  const user = userStr ? JSON.parse(userStr) : null;
+  const user = getStoredUser();
   // Admin can select any discipline, others are restricted to their assigned discipline
   const userDiscipline = user?.role === 'ADMIN' ? null : user?.discipline;
 

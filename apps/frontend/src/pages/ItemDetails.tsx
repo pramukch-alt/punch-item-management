@@ -5,6 +5,7 @@ import ImageCompareViewer from '../components/ImageCompareViewer';
 import RejectModal from '../components/RejectModal';
 import EditItemModal from '../components/EditItemModal';
 import api from '../services/api';
+import { getStoredUser } from '../utils/auth';
 
 const ItemDetails = () => {
   const { id } = useParams();

@@ -3,6 +3,7 @@ import { Download, Upload, AlertTriangle, Database } from 'lucide-react';
 import UploadExcelModal from '../components/UploadExcelModal';
 import UploadImagesModal from '../components/UploadImagesModal';
 import api from '../services/api';
+import { getStoredUser } from '../utils/auth';
 
 const DatabaseManagement = () => {
   const [activeTab, setActiveTab] = useState('upload');
@@ -13,8 +14,7 @@ const DatabaseManagement = () => {
   const [isResetting, setIsResetting] = useState(false);
   
   // Retrieve user role to check permissions according to Authorization Configuration.xlsx
-  const userStr = localStorage.getItem('user');
-  const user = userStr ? JSON.parse(userStr) : null;
+  const user = getStoredUser();
   const isSuperAdmin = user?.role === 'SUPERADMIN';
   const canBackup = user?.role === 'ADMIN' || user?.role === 'SUPERADMIN';
 
