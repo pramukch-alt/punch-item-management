@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Save, Package, Settings as SettingsIcon, Shield, Bell, Plus, Trash2, Users } from 'lucide-react';
 import api from '../services/api';
+import { getStoredUser } from '../utils/auth';
 
 const Settings = () => {
+  const currentUser = getStoredUser();
+  const isSuperadmin = currentUser?.role === 'SUPERADMIN';
+
   const [activeTab, setActiveTab] = useState('general');
   const [settings, setSettings] = useState<Record<string, string>>({
     PROJECT_NAME: '',
@@ -265,10 +269,17 @@ const Settings = () => {
                 type="text" 
                 value={settings.PROJECT_NAME || ''}
                 onChange={(e) => handleChange('PROJECT_NAME', e.target.value)}
-                className="w-full max-w-md px-4 py-2 border border-surface-border rounded-md focus:outline-none focus:border-primary-blue bg-white"
+                className={`w-full max-w-md px-4 py-2 border border-surface-border rounded-md focus:outline-none focus:border-primary-blue ${
+                  !isSuperadmin ? 'bg-surface-app text-surface-textMuted cursor-not-allowed' : 'bg-white'
+                }`}
                 placeholder="e.g. Power Plant Alpha"
+                disabled={!isSuperadmin}
               />
-              <p className="text-xs text-surface-textMuted mt-1">This name appears in the top header and on reports.</p>
+              <p className="text-xs text-surface-textMuted mt-1">
+                {isSuperadmin 
+                  ? 'This name appears in the top header and on reports.'
+                  : 'This name appears in the top header and on reports. (Only Superadmin can edit project name)'}
+              </p>
             </div>
 
             <div>

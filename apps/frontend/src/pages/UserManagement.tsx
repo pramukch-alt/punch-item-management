@@ -114,14 +114,18 @@ const UserManagement = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: string, email?: string) => {
+    if (currentUser && (id === currentUser.id || email?.toLowerCase() === currentUser.email?.toLowerCase())) {
+      alert('You cannot delete your own account.');
+      return;
+    }
     if (!window.confirm('Are you sure you want to delete this user?')) return;
     try {
       await api.delete(`/users/${id}`);
       fetchUsers();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to delete user', error);
-      alert('Failed to delete user');
+      alert(error.response?.data?.message || 'Failed to delete user');
     }
   };
 
@@ -152,40 +156,54 @@ const UserManagement = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-surface-border">
-            {users.map(user => (
-              <tr key={user.id} className="hover:bg-surface-app transition-colors">
-                <td className="px-6 py-3">{user.name || '-'}</td>
-                <td className="px-6 py-3">{user.email}</td>
-                <td className="px-6 py-3">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
-                    ${user.role === 'ADMIN' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-700'}`}>
-                    {user.role}
-                  </span>
-                </td>
-                <td className="px-6 py-3">{user.discipline || '-'}</td>
-                <td className="px-6 py-3">
-                  {user.signature_image_path ? (
-                    <img src={getFullUrl(user.signature_image_path)} alt="signature" className="h-8 object-contain select-none" draggable="false" onContextMenu={(e) => e.preventDefault()} />
-                  ) : (
-                    <span className="text-sm text-surface-textMuted">-</span>
-                  )}
-                </td>
-                <td className="px-6 py-3 text-right">
-                  <div className="flex justify-end space-x-2">
-                    {!(isSupervisor && user.role === 'ADMIN') && (
-                      <button onClick={() => openEditModal(user)} className="text-surface-textMuted hover:text-primary-blue transition-colors p-2" title="Edit User">
-                        <Pencil size={18} />
-                      </button>
+            {users.map(user => {
+              const isSelf = currentUser && (user.id === currentUser.id || user.email?.toLowerCase() === currentUser.email?.toLowerCase());
+
+              return (
+                <tr key={user.id} className="hover:bg-surface-app transition-colors">
+                  <td className="px-6 py-3">{user.name || '-'}</td>
+                  <td className="px-6 py-3">{user.email}</td>
+                  <td className="px-6 py-3">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                      ${user.role === 'ADMIN' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-700'}`}>
+                      {user.role}
+                    </span>
+                  </td>
+                  <td className="px-6 py-3">{user.discipline || '-'}</td>
+                  <td className="px-6 py-3">
+                    {user.signature_image_path ? (
+                      <img src={getFullUrl(user.signature_image_path)} alt="signature" className="h-8 object-contain select-none" draggable="false" onContextMenu={(e) => e.preventDefault()} />
+                    ) : (
+                      <span className="text-sm text-surface-textMuted">-</span>
                     )}
-                    {!(isSupervisor && user.role === 'ADMIN') && (
-                      <button onClick={() => handleDelete(user.id)} className="text-red-500 hover:text-red-700 transition-colors p-2" title="Delete User">
-                        <Trash2 size={18} />
-                      </button>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))}
+                  </td>
+                  <td className="px-6 py-3 text-right">
+                    <div className="flex justify-end space-x-2">
+                      {!(isSupervisor && user.role === 'ADMIN') && (
+                        <button onClick={() => openEditModal(user)} className="text-surface-textMuted hover:text-primary-blue transition-colors p-2" title="Edit User">
+                          <Pencil size={18} />
+                        </button>
+                      )}
+                      {!(isSupervisor && user.role === 'ADMIN') && (
+                        isSelf ? (
+                          <button 
+                            disabled 
+                            className="text-gray-300 cursor-not-allowed p-2" 
+                            title="Cannot delete your own account"
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        ) : (
+                          <button onClick={() => handleDelete(user.id, user.email)} className="text-red-500 hover:text-red-700 transition-colors p-2" title="Delete User">
+                            <Trash2 size={18} />
+                          </button>
+                        )
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
             {users.length === 0 && (
               <tr>
                 <td colSpan={4} className="px-6 py-8 text-center text-surface-textMuted">No users found.</td>

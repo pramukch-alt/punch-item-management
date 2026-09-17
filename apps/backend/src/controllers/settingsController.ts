@@ -24,11 +24,15 @@ export const getSettings = async (req: AuthRequest, res: Response) => {
 export const updateSettings = async (req: AuthRequest, res: Response) => {
   const settings = req.body; // Expecting { PROJECT_NAME: '...', ... }
   const userId = req.user?.id;
+  const userRole = req.user?.role;
   if (!userId) return res.status(401).json({ message: 'Unauthorized' });
 
   try {
     await prisma.$transaction(async (tx) => {
       for (const [key, value] of Object.entries(settings)) {
+        if (key === 'PROJECT_NAME' && userRole !== 'SUPERADMIN') {
+          continue; // Only Superadmin can modify PROJECT_NAME
+        }
         await tx.setting.upsert({
           where: { key },
           update: { value: String(value) },

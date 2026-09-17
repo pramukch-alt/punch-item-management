@@ -84,6 +84,10 @@ export const deleteUser = async (req: AuthRequest, res: Response) => {
     const userToDelete = await prisma.user.findUnique({ where: { id } });
     if (!userToDelete) return res.status(404).json({ message: 'User not found' });
 
+    if (req.user?.id === userToDelete.id || req.user?.email?.toLowerCase() === userToDelete.email.toLowerCase()) {
+      return res.status(400).json({ message: 'You cannot delete your own user account' });
+    }
+
     if (req.user?.role !== 'SUPERADMIN' && userToDelete.project_id !== req.user?.project_id) {
       return res.status(403).json({ message: 'Unauthorized: User belongs to another project' });
     }
