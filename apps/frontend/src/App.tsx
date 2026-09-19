@@ -11,6 +11,15 @@ import Layout from './components/Layout';
 import FieldApp from './pages/FieldApp';
 import SuperadminPanel from './pages/SuperadminPanel';
 import StatsMonitoring from './pages/StatsMonitoring';
+import { getStoredUser } from './utils/auth';
+
+const DefaultIndex = () => {
+  const user = getStoredUser();
+  if (user?.role === 'SUPERADMIN') {
+    return <Navigate to="/stats" replace />;
+  }
+  return <Navigate to="/dashboard" replace />;
+};
 
 function App() {
   return (
@@ -20,7 +29,7 @@ function App() {
         <Route path="/field-app" element={<FieldApp />} />
         
         <Route path="/" element={<Layout />}>
-          <Route index element={<Navigate to="/dashboard" replace />} />
+          <Route index element={<DefaultIndex />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="system-progress" element={<SystemProgress />} />
           <Route path="punch-list" element={<PunchList />} />

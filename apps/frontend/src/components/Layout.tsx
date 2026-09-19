@@ -14,12 +14,17 @@ const Layout = () => {
   
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Auth Guard: If no valid token or user session exists, perform clean redirect to /login
+  // Auth Guard: If no valid token or user session exists, perform clean redirect to /login.
+  // Also redirect SUPERADMIN away from project dashboard to STATS Monitoring.
   useEffect(() => {
     if (!token || !user) {
       performCleanLogout();
+      return;
     }
-  }, [token, user]);
+    if (userRole === 'SUPERADMIN' && (location.pathname === '/dashboard' || location.pathname === '/')) {
+      navigate('/stats', { replace: true });
+    }
+  }, [token, user, userRole, location.pathname, navigate]);
   
   let initials = 'U';
   if (user?.name) {

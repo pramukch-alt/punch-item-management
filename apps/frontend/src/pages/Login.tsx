@@ -30,7 +30,11 @@ const Login = () => {
     try {
       const response = await api.post('/auth/login', { email, password });
       setAuthSession(response.data.token, response.data.user);
-      navigate('/dashboard');
+      if (response.data.user?.role === 'SUPERADMIN') {
+        navigate('/stats');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed');
     }
