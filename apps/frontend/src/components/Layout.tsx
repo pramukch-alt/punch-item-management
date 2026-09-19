@@ -15,7 +15,7 @@ const Layout = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Auth Guard: If no valid token or user session exists, perform clean redirect to /login.
-  // Also redirect SUPERADMIN away from project dashboard to STATS Monitoring.
+  // Also redirect SUPERADMIN away from project dashboard to STATS Monitoring, and non-superadmin away from STATS.
   useEffect(() => {
     if (!token || !user) {
       performCleanLogout();
@@ -23,6 +23,8 @@ const Layout = () => {
     }
     if (userRole === 'SUPERADMIN' && (location.pathname === '/dashboard' || location.pathname === '/')) {
       navigate('/stats', { replace: true });
+    } else if (userRole !== 'SUPERADMIN' && location.pathname === '/stats') {
+      navigate('/dashboard', { replace: true });
     }
   }, [token, user, userRole, location.pathname, navigate]);
   
@@ -143,7 +145,7 @@ const Layout = () => {
 
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={20} />, roles: ['ADMIN', 'SUPERVISOR', 'CONTRACTOR', 'OE', 'OWNER'] },
-    { name: 'STATS Monitoring', path: '/stats', icon: <Activity size={20} />, roles: ['SUPERADMIN', 'ADMIN'] },
+    { name: 'STATS Monitoring', path: '/stats', icon: <Activity size={20} />, roles: ['SUPERADMIN'] },
     { name: 'System Progress', path: '/system-progress', icon: <CheckSquare size={20} />, roles: ['ADMIN', 'SUPERVISOR', 'CONTRACTOR'] },
     { name: 'Punch List', path: '/punch-list', icon: <ListChecks size={20} />, roles: ['ADMIN', 'SUPERVISOR', 'CONTRACTOR', 'OE', 'OWNER'] },
     { name: 'Database Management', path: '/database-management', icon: <Database size={20} />, roles: ['SUPERADMIN', 'ADMIN', 'SUPERVISOR', 'CONTRACTOR'] },

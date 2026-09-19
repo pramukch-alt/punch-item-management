@@ -19,17 +19,9 @@ const formatBytes = (bytes: number) => {
   return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
 };
 
-router.get('/', authenticateToken, requireRole(['SUPERADMIN', 'ADMIN']), async (req: AuthRequest, res: Response) => {
+router.get('/', authenticateToken, requireRole(['SUPERADMIN']), async (req: AuthRequest, res: Response) => {
   try {
-    const isSuper = req.user?.role === 'SUPERADMIN';
-    const userProjectId = req.user?.project_id;
-
-    const whereCondition = isSuper 
-      ? {} 
-      : { id: userProjectId || 'NONE' };
-
     const rawProjects = await prisma.project.findMany({
-      where: whereCondition,
       include: {
         package: true,
         users: {
