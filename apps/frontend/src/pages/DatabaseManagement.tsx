@@ -21,16 +21,26 @@ const DatabaseManagement = () => {
 
   const [projects, setProjects] = useState<any[]>([]);
   const [selectedResetProject, setSelectedResetProject] = useState<string>(superadminProjectId || 'ALL');
+  const [selectedUploadProject, setSelectedUploadProject] = useState<string>(superadminProjectId || '');
+  const [selectedBackupProject, setSelectedBackupProject] = useState<string>(superadminProjectId || 'ALL');
 
   useEffect(() => {
     if (isSuperAdmin) {
-      api.get('/projects').then(res => setProjects(res.data)).catch(console.error);
+      api.get('/projects').then(res => {
+        setProjects(res.data);
+        if (res.data.length > 0 && !selectedUploadProject) {
+          setSelectedUploadProject(superadminProjectId || res.data[0].id);
+        }
+      }).catch(console.error);
     }
   }, [isSuperAdmin]);
 
   const handleBackup = async () => {
     try {
-      const res = await api.get('/punch-items');
+      const endpoint = isSuperAdmin && selectedBackupProject && selectedBackupProject !== 'ALL' 
+        ? `/punch-items?project_id=${selectedBackupProject}`
+        : '/punch-items';
+      const res = await api.get(endpoint);
       const items = res.data;
       if (items.length === 0) {
         alert('No punch items found to backup.');
@@ -46,12 +56,15 @@ const DatabaseManagement = () => {
       );
       const csv = [headers, ...rows].join('\n');
       
+      const targetProj = projects.find(p => p.id === selectedBackupProject);
+      const projSuffix = targetProj ? `_${targetProj.name.replace(/[^a-zA-Z0-9]/g, '_')}` : '';
+
       const blob = new Blob([csv], { type: 'text/csv' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.setAttribute('hidden', '');
       a.setAttribute('href', url);
-      a.setAttribute('download', `Database_Backup_v1.0.0-beta_${new Date().toISOString().split('T')[0]}.csv`);
+      a.setAttribute('download', `Database_Backup${projSuffix}_${new Date().toISOString().split('T')[0]}.csv`);
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -129,6 +142,28 @@ const DatabaseManagement = () => {
           {/* Upload Tab */}
           {activeTab === 'upload' && (
             <div className="max-w-2xl space-y-6">
+              {isSuperAdmin && (
+                <div className="bg-blue-50/50 border border-blue-200 rounded-lg p-4 space-y-2 mb-6">
+                  <label className="block text-sm font-semibold text-primary-dark">
+                    🎯 Target Project for Bulk Upload & Import:
+                  </label>
+                  <select
+                    value={selectedUploadProject}
+                    onChange={(e) => setSelectedUploadProject(e.target.value)}
+                    className="w-full max-w-sm px-3 py-2 border border-gray-300 rounded-md text-sm font-medium bg-white focus:outline-none focus:border-primary-blue"
+                  >
+                    {projects.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        📁 {p.name} ({p._count?.punch_items || 0} items)
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-surface-textMuted">
+                    As Superadmin, select the specific project you want to import Punch Items or upload image attachments for.
+                  </p>
+                </div>
+              )}
+
               <div className="flex items-start space-x-4">
                 <div className="p-3 bg-blue-50 text-primary-blue rounded-lg shrink-0">
                   <Upload size={24} />
@@ -143,7 +178,7 @@ const DatabaseManagement = () => {
                     onClick={() => setIsUploadModalOpen(true)}
                     className="mt-4 bg-primary-blue text-white px-5 py-2.5 rounded-md hover:bg-blue-700 transition-colors font-medium"
                   >
-                    Upload Excel
+                    Upload Excel {isSuperAdmin && projects.find(p => p.id === selectedUploadProject) ? `(${projects.find(p => p.id === selectedUploadProject)?.name})` : ''}
                   </button>
                 </div>
               </div>
@@ -161,7 +196,7 @@ const DatabaseManagement = () => {
                     onClick={() => setIsImageUploadModalOpen(true)}
                     className="mt-4 bg-purple-600 text-white px-5 py-2.5 rounded-md hover:bg-purple-700 transition-colors font-medium"
                   >
-                    Upload Multiple Images
+                    Upload Multiple Images {isSuperAdmin && projects.find(p => p.id === selectedUploadProject) ? `(${projects.find(p => p.id === selectedUploadProject)?.name})` : ''}
                   </button>
                 </div>
               </div>
@@ -171,21 +206,43 @@ const DatabaseManagement = () => {
           {/* Backup Tab */}
           {activeTab === 'backup' && (
             <div className="max-w-2xl space-y-6">
+              {isSuperAdmin && (
+                <div className="bg-green-50/50 border border-green-200 rounded-lg p-4 space-y-2 mb-6">
+                  <label className="block text-sm font-semibold text-primary-dark">
+                    🎯 Select Target Project for Database Backup:
+                  </label>
+                  <select
+                    value={selectedBackupProject}
+                    onChange={(e) => setSelectedBackupProject(e.target.value)}
+                    className="w-full max-w-sm px-3 py-2 border border-gray-300 rounded-md text-sm font-medium bg-white focus:outline-none focus:border-primary-blue"
+                  >
+                    <option value="ALL">🌐 ALL PROJECTS (Global Export)</option>
+                    {projects.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        📁 {p.name} ({p._count?.punch_items || 0} items)
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-surface-textMuted">
+                    Select a specific project to export its Punch List CSV backup, or choose ALL PROJECTS for a full system export.
+                  </p>
+                </div>
+              )}
+
               <div className="flex items-start space-x-4">
                 <div className="p-3 bg-green-50 text-status-closed rounded-lg shrink-0">
                   <Download size={24} />
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold text-primary-dark">Database Backup (Export All)</h2>
+                  <h2 className="text-lg font-semibold text-primary-dark">Database Backup (CSV Export)</h2>
                   <p className="text-surface-textMuted mt-1">
-                    Download the entire transactional database (all Punch Items) regardless of status or filters. 
-                    This export is generated in real-time as a CSV file and is tagged with the current system version (v1.0.0-beta) for safe keeping.
+                    Download transactional database records as a CSV file in real-time for record keeping and audit logs.
                   </p>
                   <button 
                     onClick={handleBackup}
                     className="mt-4 bg-status-closed text-white px-5 py-2.5 rounded-md hover:bg-green-600 transition-colors font-medium"
                   >
-                    Download CSV Backup
+                    Download CSV Backup {isSuperAdmin ? (selectedBackupProject === 'ALL' ? '(All Projects)' : `(${projects.find(p => p.id === selectedBackupProject)?.name})`) : ''}
                   </button>
                 </div>
               </div>
@@ -287,10 +344,14 @@ const DatabaseManagement = () => {
       <UploadExcelModal 
         isOpen={isUploadModalOpen} 
         onClose={() => setIsUploadModalOpen(false)}
+        projectId={isSuperAdmin ? selectedUploadProject : undefined}
+        projectName={isSuperAdmin ? projects.find(p => p.id === selectedUploadProject)?.name : undefined}
       />
       <UploadImagesModal
         isOpen={isImageUploadModalOpen}
         onClose={() => setIsImageUploadModalOpen(false)}
+        projectId={isSuperAdmin ? selectedUploadProject : undefined}
+        projectName={isSuperAdmin ? projects.find(p => p.id === selectedUploadProject)?.name : undefined}
         onSuccess={() => {
           setIsImageUploadModalOpen(false);
           alert('Images uploaded successfully');

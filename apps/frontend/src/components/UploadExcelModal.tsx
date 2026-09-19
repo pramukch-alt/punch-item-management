@@ -6,9 +6,11 @@ import api from '../services/api';
 interface UploadExcelModalProps {
   isOpen: boolean;
   onClose: () => void;
+  projectId?: string;
+  projectName?: string;
 }
 
-const UploadExcelModal: React.FC<UploadExcelModalProps> = ({ isOpen, onClose }) => {
+const UploadExcelModal: React.FC<UploadExcelModalProps> = ({ isOpen, onClose, projectId, projectName }) => {
   const [file, setFile] = useState<File | null>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -27,6 +29,9 @@ const UploadExcelModal: React.FC<UploadExcelModalProps> = ({ isOpen, onClose }) 
     try {
       const formData = new FormData();
       formData.append('file', file);
+      if (projectId) {
+        formData.append('project_id', projectId);
+      }
       
       const response = await api.post('/punch-items/import', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
@@ -45,7 +50,7 @@ const UploadExcelModal: React.FC<UploadExcelModalProps> = ({ isOpen, onClose }) 
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Bulk Excel Upload">
+    <Modal isOpen={isOpen} onClose={onClose} title={`Bulk Excel Upload ${projectName ? `— Target Project: ${projectName}` : ''}`}>
       <form onSubmit={handleSubmit} className="space-y-4">
         
         <div className="border-2 border-dashed border-surface-border rounded-lg p-8 flex flex-col items-center justify-center text-center hover:bg-surface-app transition-colors relative">

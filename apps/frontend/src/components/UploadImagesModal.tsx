@@ -6,9 +6,11 @@ interface UploadImagesModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  projectId?: string;
+  projectName?: string;
 }
 
-const UploadImagesModal: React.FC<UploadImagesModalProps> = ({ isOpen, onClose, onSuccess }) => {
+const UploadImagesModal: React.FC<UploadImagesModalProps> = ({ isOpen, onClose, onSuccess, projectId, projectName }) => {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -48,6 +50,9 @@ const UploadImagesModal: React.FC<UploadImagesModalProps> = ({ isOpen, onClose, 
     selectedFiles.forEach(file => {
       formData.append('images', file);
     });
+    if (projectId) {
+      formData.append('project_id', projectId);
+    }
 
     try {
       const res = await api.post('/punch-items/bulk-images', formData, {
@@ -74,7 +79,10 @@ const UploadImagesModal: React.FC<UploadImagesModalProps> = ({ isOpen, onClose, 
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
         <div className="flex justify-between items-center p-4 border-b border-surface-border">
-          <h2 className="text-xl font-bold text-primary-dark">Bulk Upload Images</h2>
+          <div>
+            <h2 className="text-xl font-bold text-primary-dark">Bulk Upload Images</h2>
+            {projectName && <p className="text-xs text-primary-blue font-semibold mt-0.5">Target Project: {projectName}</p>}
+          </div>
           <button onClick={onClose} className="text-surface-textMuted hover:text-primary-dark transition-colors p-1">
             <X size={24} />
           </button>

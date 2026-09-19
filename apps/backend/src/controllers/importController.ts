@@ -10,6 +10,10 @@ export const importExcel = async (req: AuthRequest, res: Response) => {
   const userId = req.user?.id;
   if (!userId) return res.status(401).json({ message: 'Unauthorized' });
 
+  const targetProjectId = (req.user?.role === 'SUPERADMIN' && req.body?.project_id) 
+    ? req.body.project_id 
+    : (req.user?.project_id || null);
+
   try {
     const workbook = xlsx.read(req.file.buffer, { type: 'buffer' });
     const sheetName = workbook.SheetNames[0];
@@ -32,7 +36,7 @@ export const importExcel = async (req: AuthRequest, res: Response) => {
           existing = await tx.punchItem.findFirst({ 
             where: { 
               running_no, 
-              project_id: req.user?.project_id || null 
+              project_id: targetProjectId 
             } 
           });
         }
@@ -61,7 +65,7 @@ export const importExcel = async (req: AuthRequest, res: Response) => {
           const lastItem = await tx.punchItem.findFirst({
             where: {
               discipline: discipline as Discipline,
-              project_id: req.user?.project_id || null,
+              project_id: targetProjectId,
               running_no: { startsWith: `${discipline}-${year}-` }
             },
             orderBy: { running_no: 'desc' }
@@ -87,7 +91,7 @@ export const importExcel = async (req: AuthRequest, res: Response) => {
               description,
               status: 'OPEN',
               created_by_id: userId,
-              project_id: req.user?.project_id || null,
+              project_id: targetProjectId,
             }
           });
           
@@ -111,6 +115,10 @@ export const bulkImageUpload = async (req: AuthRequest, res: Response) => {
 
   const userId = req.user?.id;
   if (!userId) return res.status(401).json({ message: 'Unauthorized' });
+
+  const targetProjectId = (req.user?.role === 'SUPERADMIN' && req.body?.project_id) 
+    ? req.body.project_id 
+    : (req.user?.project_id || null);
 
   const pattern = /^([A-Za-z0-9]+-\d+-\d+)_(before|after)_(1|2)(?:\.[a-zA-Z0-9]+)?$/i;
   let successCount = 0;
@@ -136,7 +144,7 @@ export const bulkImageUpload = async (req: AuthRequest, res: Response) => {
       const punchItem = await prisma.punchItem.findFirst({ 
         where: { 
           running_no,
-          project_id: req.user?.project_id || null
+          project_id: targetProjectId
         } 
       });
       if (!punchItem) {
