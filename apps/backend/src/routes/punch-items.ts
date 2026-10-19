@@ -39,10 +39,10 @@ router.put('/:id', requireRole(['CONTRACTOR', 'ADMIN', 'SUPERADMIN']), imageUplo
 router.post('/import', requireRole(['CONTRACTOR', 'ADMIN', 'SUPERVISOR', 'SUPERADMIN']), checkPackageLimits, memoryUpload.single('file'), importExcel);
 router.post('/bulk-images', requireRole(['CONTRACTOR', 'ADMIN', 'SUPERVISOR', 'SUPERADMIN']), imageUpload.array('images', 50), bulkImageUpload);
 // Workflow routes
-router.post('/:id/submit-oe', requireRole(['CONTRACTOR', 'ADMIN']), submitToOE);
-router.post('/:id/submit-owner', requireRole(['OE', 'ADMIN']), submitToOwner);
-router.post('/:id/close', requireRole(['OWNER', 'ADMIN']), closeItem);
-router.post('/:id/reject', requireRole(['OE', 'OWNER', 'ADMIN']), rejectItem);
+router.post('/:id/submit-oe', requireRole(['CONTRACTOR', 'ADMIN', 'SUPERVISOR', 'SUPERADMIN']), submitToOE);
+router.post('/:id/submit-owner', requireRole(['OE', 'ADMIN', 'SUPERVISOR', 'SUPERADMIN']), submitToOwner);
+router.post('/:id/close', requireRole(['OWNER', 'ADMIN', 'SUPERVISOR', 'SUPERADMIN']), closeItem);
+router.post('/:id/reject', requireRole(['OE', 'OWNER', 'ADMIN', 'SUPERVISOR', 'SUPERADMIN']), rejectItem);
 router.post('/:id/cancel', requireRole(['CONTRACTOR', 'ADMIN']), cancelItem);
 router.post('/:id/reply', requireRole(['CONTRACTOR', 'ADMIN']), replyToReject);
 
