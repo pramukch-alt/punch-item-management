@@ -43,9 +43,10 @@ const ItemDetails = () => {
   };
 
   useEffect(() => {
-    const userStr = localStorage.getItem('user');
-    if (userStr) {
-      setUserRole(JSON.parse(userStr).role);
+    // Auth session is stored in sessionStorage; use shared helper (with legacy fallback)
+    const storedUser = getStoredUser();
+    if (storedUser?.role) {
+      setUserRole(storedUser.role);
     }
   }, []);
 
@@ -72,12 +73,13 @@ const ItemDetails = () => {
   }, [id]);
 
   const handleAction = async (action: string) => {
+    if (action === 'cancel' && !window.confirm('Are you sure you want to cancel this punch item?')) return;
     try {
       await api.post(`/punch-items/${id}/${action}`);
       fetchItemDetails();
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert('Action failed');
+      alert(error.response?.data?.message || 'Action failed');
     }
   };
 
@@ -310,7 +312,7 @@ const ItemDetails = () => {
                 </button>
               )}
 
-              {(userRole === 'CONTRACTOR' || userRole === 'ADMIN') && (
+              {(userRole === 'CONTRACTOR' || userRole === 'ADMIN') && item.status !== 'CLOSED' && item.status !== 'CANCELED' && (
                 <button 
                   onClick={() => handleAction('cancel')}
                   className="w-full flex items-center justify-center space-x-2 bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors mt-4"

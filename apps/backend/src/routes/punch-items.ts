@@ -35,7 +35,7 @@ router.use(authenticateToken);
 router.get('/', getPunchItems);
 router.get('/:id', getPunchItemById);
 router.post('/', requireRole(['CONTRACTOR', 'ADMIN', 'SUPERVISOR', 'SUPERADMIN']), checkPackageLimits, imageUpload.fields([{ name: 'before_image', maxCount: 1 }, { name: 'before_image_2', maxCount: 1 }, { name: 'after_image', maxCount: 1 }, { name: 'after_image_2', maxCount: 1 }]), createPunchItem);
-router.put('/:id', requireRole(['CONTRACTOR', 'SUPERADMIN']), imageUpload.fields([{ name: 'before_image', maxCount: 1 }, { name: 'before_image_2', maxCount: 1 }, { name: 'after_image', maxCount: 1 }, { name: 'after_image_2', maxCount: 1 }]), updatePunchItem);
+router.put('/:id', requireRole(['CONTRACTOR', 'ADMIN', 'SUPERADMIN']), imageUpload.fields([{ name: 'before_image', maxCount: 1 }, { name: 'before_image_2', maxCount: 1 }, { name: 'after_image', maxCount: 1 }, { name: 'after_image_2', maxCount: 1 }]), updatePunchItem);
 router.post('/import', requireRole(['CONTRACTOR', 'ADMIN', 'SUPERVISOR', 'SUPERADMIN']), checkPackageLimits, memoryUpload.single('file'), importExcel);
 router.post('/bulk-images', requireRole(['CONTRACTOR', 'ADMIN', 'SUPERVISOR', 'SUPERADMIN']), imageUpload.array('images', 50), bulkImageUpload);
 // Workflow routes

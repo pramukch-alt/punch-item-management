@@ -62,6 +62,9 @@ export const getPunchItemById = async (req: AuthRequest, res: Response) => {
       }
     });
     if (!item) return res.status(404).json({ message: 'Item not found' });
+    if (req.user?.role !== 'SUPERADMIN' && item.project_id && item.project_id !== req.user?.project_id) {
+      return res.status(403).json({ message: 'Forbidden: Item belongs to another project' });
+    }
     res.json(item);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error });
@@ -156,6 +159,12 @@ export const updatePunchItem = async (req: AuthRequest, res: Response) => {
   if (!userId) return res.status(401).json({ message: 'Unauthorized' });
 
   try {
+    const existing = await prisma.punchItem.findUnique({ where: { id } });
+    if (!existing) return res.status(404).json({ message: 'Item not found' });
+    if (req.user?.role !== 'SUPERADMIN' && existing.project_id && existing.project_id !== req.user?.project_id) {
+      return res.status(403).json({ message: 'Forbidden: Item belongs to another project' });
+    }
+
     let before_image_path = undefined;
     let before_image_2_path = undefined;
     let after_image_path = undefined;
